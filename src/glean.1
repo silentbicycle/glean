@@ -1,0 +1,38 @@
+.TH GLEAN 1
+.SH NAME
+glean \- search engine for local text content
+.SH DESCRIPTION
+glean is a fast, lightweight search engine for large collections of text
+files. Rather than indexing every location where each token occurs
+(potentially 40-50+% the size of the indexed content), its index
+maps tokens to files, but falls back on
+.B grep
+at the file level. Consequently, its index is proportionately much
+smaller (typically only 2-3%), and can be quickly (re)built.
+.P
+.BR gln_index(1)
+is used to build the index, and
+.BR gln(1)
+is used for searching.
+.P
+The indexed files are not required to have any specific structure; they
+are just treated as lists of whitespace-separated words. It's designed
+to be used as a first-pass index for
+.I everything,
+to maximize serendipitous discovery. The results from glean are like
+those from
+.B grep -r foo /
+, only much faster.
+.SH SEE ALSO
+.BR gln (1),
+.BR gln_index (1).
+.SH BUGS
+Glean works well with lots of small files, but is inefficient when
+searching huge (>10-25 MB) files; grep searches them as a whole. A
+secondary indexing mode for large files (based on delta-encoded page
+offsets) is planned but not yet implemented.
+
+The mix of mmap and file IO in the code is a bit odd, and will be
+reworked as incremental database updates are added.
+.SH AUTHOR
+Scott Vokes <vokes.s@gmail.com>

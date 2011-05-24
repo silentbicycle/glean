@@ -1,0 +1,62 @@
+.TH GLN_INDEX 1
+.SH NAME
+gln_index \- indexer for glean
+.SH SYNOPSIS
+.B gln_index
+.RB [ \-h ]
+.RB [ \-V ]
+.RB [ \-v ]
+.RB [ \-a ]
+.RB [ \-p ]
+.RB [ \-c ]
+.RB [ \-s ]
+.RB [ \-d " <db_dir>"]
+.RB [ \-r " <index_root>"]
+.RB [ \-w " <worker_count>"]
+.SH DESCRIPTION
+gln_index builds the index for glean. It reads all files in a directory
+tree, then records which files contain which tokens.
+.SS Options
+.TP
+.B \-h
+print help information and exit.
+.TP
+.B \-V
+print version and exit.
+.TP
+.B \-v
+increase verbosity (can be used multiple times).
+.TP
+.B \-a
+don't skip .dotfiles (default: ignore .*).
+.TP
+.B \-p
+show progress while generating index.
+.TP
+.B \-c
+make indexing case-sensitive (default: case-insensitive).
+.TP
+.B \-s
+enable experimental stopword support; this reduces index size somewhat
+by omitting very common words that probably have little semantic
+influence.
+.TP
+.B \-d <db_dir>
+sets where to store the .gln index subdirectly (default: ~).
+.TP
+.B \-r <index_root>
+sets the base directory which should be indexed (default: ~).
+.TP
+.B \-w <worker_count>
+sets the number of tokenizer processes to spawn (default: 8).
+.SH EXIT STATUS
+.BR gln_index
+returns 0 on success or 1 on error.
+.SH SEE ALSO
+.BR glean (1),
+.BR gln (1).
+.SH BUGS
+Updating an existing index is not (yet) supported - it must be rebuilt from scratch.
+Fortunately, this is reasonably fast.
+.SH AUTHOR
+Scott Vokes <vokes.s@gmail.com>

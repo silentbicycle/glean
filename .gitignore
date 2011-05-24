@@ -1,0 +1,5 @@
+src/*.o
+src/gln
+src/gln_index
+src/*.core
+src/TAGS

@@ -1,0 +1,11 @@
+#!/usr/bin/awk -f
+/^f:/ { fn += $2; fnbyte += $4 }
+/^b:/ { tok += $2; tbyte += $4; thbyte += $7 }
+
+END {
+        printf("filenames:\t %8d\n", fn)
+        printf("filename bytes:\t %8d\n", fnbyte)
+        printf("tokens:\t\t %8d\n", tok)
+        printf("token bytes:\t %8d\n", tbyte)
+        printf("hash bytes:\t %8d\n", thbyte)
+}
