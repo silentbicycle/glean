@@ -1,5 +1,6 @@
 src/*.o
 src/gln
 src/gln_index
+src/gln_tokens
 src/*.core
 src/TAGS
