@@ -6,6 +6,7 @@ To install:
 
 Look at `src/config.mk`. (You probably won't need to edit it.)
     
+    cd src
     make
     make install
 
