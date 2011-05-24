@@ -17,7 +17,7 @@ Usage:
 
 For more info, look at the man pages.
 
-It's like `grep -r / foo`, but much faster.
+It's like `grep -r ~ foo`, but much faster.
 
 With many search indexing systems, the index can be 30-50% the size of
 indexed content. Glean's index is a svelte 2-5%, and builds rapidly.
