@@ -13,10 +13,6 @@
 #include <errno.h>
 #include <math.h>
 
-#ifndef BSD
-#include <bsd/string.h>
-#endif
-
 #include "glean.h"
 #include "ignore.h"
 #include "hash.h"
