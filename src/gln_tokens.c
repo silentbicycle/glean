@@ -14,6 +14,7 @@
 
 #define BUF_SZ 4096
 #define TIMEOUT 60              /* just die after 1 minute idle */
+#define FLUSH_COUNT 100         /* clear table & shrink every N files */
 
 /* Read in filenames from stdin and tokenize them. If given " DONE", quit. */
 int main(int argc, char *argv[]) {
@@ -22,7 +23,7 @@ int main(int argc, char *argv[]) {
         int pid = getpid();
         int case_sensitive = (argc == 2 && strcmp(argv[1], "-c") == 0);
         struct pollfd fds[1];
-        int res = 0;
+        int res = 0, files = 0;
 
         fds[0].fd = STDIN_FILENO;
         fds[0].events = POLLIN;
@@ -40,6 +41,14 @@ int main(int argc, char *argv[]) {
                             pid, buf);
                         tokenize_file(buf, wt, case_sensitive);
                         fflush(stdout);
+
+                        if (++files >= FLUSH_COUNT) {
+                                table_free(wt, free_word);
+                                wt = init_word_table(0);
+                                if (0) fprintf(stderr, "flush: %d, %d\n", getpid(), files);
+                                files = 0;
+                        }
+
                         if (DEBUG) fprintf(stderr, "done\n");
                         if (DEBUG) fprintf(stderr, "-- Finished filename %s\n", buf);
                 } else break;
