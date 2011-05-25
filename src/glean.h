@@ -24,7 +24,14 @@
 #define SKIP_COMPRESS 0
 
 /* Should we use u_int16_t or u_int32_t for hashes? */
+#define FOUR_BYTE_HASH 0
+
+#if FOUR_BYTE_HASH
+typedef u_int32_t hash_t;
+#else
 typedef u_int16_t hash_t;
+#endif
+
 #define HASH_BYTES sizeof(hash_t)
 
 /* How many tokenizer processes? */

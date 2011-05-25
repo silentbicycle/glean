@@ -4,9 +4,6 @@
 /* Grow when any chain gets this long; average will be much smaller. */
 #define DEF_GROW_LEN 50
 
-/* Flush to disk when over this large. NYI. */
-#define DEF_MAX_SIZE 268435399     /* ~256 mb */
-
 /* Flags */
 #define TABLE_SET_FAIL  0
 #define TABLE_SET	0x01

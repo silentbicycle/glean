@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <err.h>
 #include <string.h>
+#include <sys/types.h>
 
 #include "glean.h"
 #include "hash.h"
@@ -13,12 +14,17 @@
 /* table_remove NYI, not used. Append only. */
 
 /* Largest primes preceeding increasing powers of 2.
- * Duplicate value -> at max. */
+ * Duplicate value -> at max. Only add primes > 2^16
+ * when hashes are larger than 2 bytes, having more
+ * buckets than possible hashes is counterproductive. */
 static uint primes[] = { 3, 7, 13, 31, 61, 127, 251, 509, 1021, 2039,
-                         4093, 8191, 16381, 32749, 65521, 131071,
-                         262139, 524287, 1048573, 2097143, 4194301, 8388593,
-                         16777213, 33554393, 67108859, 134217689, 268435399,
-                         536870909, 1073741789, 1073741789, 0 };
+                         4093, 8191, 16381, 32749, 65521,
+#if FOUR_BYTE_HASH
+                         131071, 262139, 524287, 1048573, 2097143, 4194301,
+                         8388593, 16777213, 33554393, 67108859, 134217689,
+                         268435399, 536870909, 1073741789, 1073741789,
+#endif
+                         0 };
 
 #ifndef ALLOC
 #define ALLOC(x) basic_alloc(x)
@@ -45,7 +51,8 @@ table *table_init(int sz_factor, uint (*hash)(void *),
         t = ALLOC(sizeof(table));
         assert(hash); assert(cmp);
         t->sz=sz; t->hash = hash; t->cmp = cmp; t->b = b;
-        t->ms = DEF_MAX_SIZE; t->mcl = DEF_GROW_LEN;
+        t->ms = primes[(sizeof(primes)/sizeof(primes[0]))-2];
+        t->mcl = DEF_GROW_LEN;
         for (i=0; i<sz; i++) t->b[i] = NULL;
         return t;
 }
@@ -107,7 +114,7 @@ static int table_resize(table *t, int sz) {
         int i, old_sz;
         tlink **nb;
         tlink *cur, **oldb = (tlink**)t->b, *next;
-        if (0) fprintf(stderr, "\n\n-- Resizing from %d to %d\n\n", t->sz, sz);
+        if (DEBUG) fprintf(stderr, "\n\n-- Resizing from %d to %d\n\n", t->sz, sz);
         old_sz = t->sz;
         if (sz == old_sz) { return TABLE_FULL; }
         nb = ALLOC(sz*sizeof(void *));
@@ -145,6 +152,17 @@ int table_set(table *t, void *v) {
         n = ALLOC(sizeof(tlink));
         n->next = NULL;
         n->v = v;
+
+        /* If the table is already at the max size, just put it at the
+         * head, don't bother walking the whole chain. */
+        if (t->sz == t->ms) {
+                cur = t->b[b];
+                t->b[b] = n;
+                n->next = cur;
+                return TABLE_SET | TABLE_FULL;
+        }
+
+        /* Otherwise, note the length, to see if it's time to resize. */
         for (cur = t->b[b]; cur != NULL; cur=cur->next) {
                 len++;
                 tail = cur;
@@ -157,6 +175,7 @@ int table_set(table *t, void *v) {
         status |= TABLE_SET;
         if (len > t->mcl) {
                 status |= table_grow(t);
+                if (DEBUG) table_stats(t, 0);
         }
         return status;
 }
@@ -194,16 +213,16 @@ void table_free(table *t, void (*free_val)(void *val)) {
 void table_stats(table *t, int verbose) {
         long i, len=0, tot=0, minlen=t->mcl, maxlen=0;
         tlink *cur;
-        printf("table: %d buckets, max chain len %d, max size %d\n",
+        fprintf(stderr, "table: %d buckets, max chain len %d, max size %d\n",
             t->sz, t->mcl, t->ms);
         for (i=0; i<t->sz; i++) {
                 len = 0;
                 for (cur = t->b[i]; cur != NULL; cur=cur->next) len++;
-                if (verbose) printf("bucket %ld: %ld\n", i, len);
+                if (verbose) fprintf(stderr, "bucket %ld: %ld\n", i, len);
                 tot += len;
                 if (len < minlen) minlen = len;
                 else if (len > maxlen) maxlen = len;
         }
-        printf("----\ttotal: %ld\tavg: %.2f\tmin: %ld\tmax: %ld\n",
+        fprintf(stderr, "----\ttotal: %ld\tavg: %.2f\tmin: %ld\tmax: %ld\n",
             tot, tot / (float)t->sz, minlen, maxlen);
 }

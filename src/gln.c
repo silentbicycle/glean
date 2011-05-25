@@ -56,6 +56,11 @@ static dbinfo *init_dbinfo() {
         return db;
 }
 
+static void bail(char *s) {
+        fprintf(stderr, s);
+        exit(1);
+}
+
 static const char *fndb_fn = "/.gln/fname.db";
 static const char *tokdb_fn = "/.gln/token.db";
 
@@ -65,6 +70,7 @@ static void open_dbs(dbinfo *db) {
         size_t root_len, flen, tlen, fnlen = strlen(fndb_fn);
         struct stat sb;
         char *fn;
+        int minlen = strlen("glnF " GLN_VERSION_STRING) + 4;
         root_len = strlen(db->gln_dir);
         fn = alloc(fnlen + root_len + 1, 'n');
         strncpy(fn, db->gln_dir, strlen(tokdb_fn) + root_len);
@@ -73,6 +79,7 @@ static void open_dbs(dbinfo *db) {
         if (DEBUG) fprintf(stderr, "opening %s\n", fn);
         if ((stat(fn, &sb)) == -1) err(1, fn);
         flen = sb.st_size;
+        if (flen < minlen) bail("Invalid fname.db.\n");
         if ((ffd = open(fn, O_RDONLY, 0)) == -1) err(1, fn);
         if ((db->fdb = mmap(NULL, flen, PROT_READ, MAP_PRIVATE, ffd, 0)) == MAP_FAILED)
                 err(1, fn);
@@ -81,6 +88,7 @@ static void open_dbs(dbinfo *db) {
         if (DEBUG) fprintf(stderr, "opening %s\n", fn);
         if ((stat(fn, &sb)) == -1) err(1, fn);
         tlen = sb.st_size;
+        if (flen < minlen) bail("Invalid token.db.\n");
         if ((tfd = open(fn, O_RDONLY, 0)) == -1) err(1, fn);
         if ((db->tdb = mmap(NULL, tlen, PROT_READ, MAP_PRIVATE, tfd, 0)) == MAP_FAILED)
                 err(1, fn);
@@ -161,11 +169,6 @@ static ll_offset *build_chain(char *p, uint offset) {
                 if (DEBUG) fprintf(stderr, "Next offset is %u (0x%04x)\n", off, off);
         }
         return prev;
-}
-
-static void bail(char *s) {
-        fprintf(stderr, s);
-        exit(1);
 }
 
 static void check_db_headers(dbinfo *db) {
@@ -320,7 +323,7 @@ static void dump_db(dbinfo *dbi, char *db, ll_offset *db_head,
 }
 
 /* Just print word hashes (for testing DBs). */
-static void hash_loop(char *buf) {
+static int hash_loop(char *buf) {
         uint hash;
         for (;;) {
                 if (fgets(buf, MAX_WORD_SZ, stdin) != NULL) {
@@ -329,6 +332,7 @@ static void hash_loop(char *buf) {
                         printf("%s %u 0x%04x\n", buf, hash, hash);
                 } else break;
         }
+        return 0;
 }
 
 static void append_matches_in_bucket(dbinfo *db, hash_t tokhash,
@@ -762,12 +766,18 @@ static char handle_args(dbinfo *db, int *argc, char **argv[]) {
 
 int main(int argc, char *argv[]) {
         char buf[MAX_WORD_SZ];
-        dbinfo *db = init_dbinfo();
+        dbinfo *db;
         char mode = 'g';
-        init_zlib();
         
+        db = init_dbinfo();
         mode = handle_args(db, &argc, &argv);
 
+        if (mode == 'H') {
+                free_dbinfo(db);
+                return hash_loop(buf);
+        }
+
+        init_zlib();
         open_dbs(db);
         read_settings(db);
         check_db_headers(db);
@@ -775,8 +785,6 @@ int main(int argc, char *argv[]) {
         if (mode == 'D') {        /* dump */
                 dump_db(db, db->fdb, db->fdb_head, dump_fname_bucket);
                 dump_db(db, db->tdb, db->tdb_head, dump_token_bucket);
-        } else if (mode == 'H') { /* hash loop */
-                hash_loop(buf);
         } else if (mode == 'g'){  /* glean db lookup, default */
                 lookup_query(db);
         }
