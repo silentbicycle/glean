@@ -591,10 +591,10 @@ static void run_pipeline(dbinfo *db, int file_offset, int file_ct) {
                         fprintf(stderr, "Too many filenames for grep pipeline.\n");
                         exit(1);
                 }
-                if (i>0) fnbuf[fo++] = '"';
+                fnbuf[fo++] = '"';
                 strncpy(fnbuf + fo, fn, len);
                 fo += len;
-                if (i>0) fnbuf[fo++] = '"';
+                fnbuf[fo++] = '"';
                 fnbuf[fo] = ' '; fnbuf[++fo] = '\0';
         }
 
