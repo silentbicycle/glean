@@ -28,7 +28,7 @@ void ign_add_re(const char *pat, re_group *g) {
         int ok;
         assert(pat != NULL);
         assert(g != NULL);
-        if ((ok = regcomp(re, pat, REG_EXTENDED) != 0)) {
+        if ((ok = regcomp(re, pat, REG_EXTENDED | REG_ICASE) != 0)) {
                 fprintf(stderr, "Bad regex: %s\n", pat);
                 err(1, "regcomp fail");
         }
