@@ -1,7 +1,7 @@
 #ifndef GLEAN_H
 #define GLEAN_H
 
-#define GLN_VERSION_STRING "000100" /* 0.1.0 "beta vulgaris" */
+#define GLN_VERSION_STRING "000101"
 
 #ifdef NDEBUG
 #define DEBUG 0

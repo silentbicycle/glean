@@ -178,9 +178,9 @@ static void check_db_headers(dbinfo *db) {
         if (strncmp(db->fdb, "glnF ", 5) != 0) bail("fname.db: bad header\n");
         if (strncmp(db->tdb, "glnT ", 5) != 0) bail("token.db: bad header\n");
         if (strncmp(db->fdb + 5, GLN_VERSION_STRING, verlen) != 0)
-                bail("fname.db: bad db version\n");
+                bail("fname.db: bad db version, rebuild db\n");
         if (strncmp(db->tdb + 5, GLN_VERSION_STRING, verlen) != 0)
-                bail("fname.db: bad db version\n");
+                bail("fname.db: bad db version, rebuild db\n");
 
         offset = 5 + strlen(GLN_VERSION_STRING) + 1;
         fbsz = rd_int32(db->fdb, offset);
