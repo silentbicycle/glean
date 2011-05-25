@@ -35,7 +35,7 @@
  * TODO: Handle this better, factoring in sum of token and filename
  * sizes. This should probably be determined dynamically, based on how
  * full the command line buffer grows. */
-#define BATCH_SIZE 1000
+#define BATCH_SIZE 100
 
 static void usage() {
         puts("glean, by Scott Vokes\n"
