@@ -349,10 +349,10 @@ static int schedule_workers(context *c) {
 
         /* Show progress */
         if (c->show_progress && ++c->tick >= c->tick_max) {
-                fprintf(stderr, "%.2f%%, %d of %d files, ",
+                fprintf(stderr, "%.2f%%, %d of %d files, eta ",
                     (100.0 * (fni+1)) / fnlen, fni + 1, fnlen);
                 print_eta(stderr, c->startsec, fni, fnlen);
-                fprintf(stderr, " remaining\n");
+                fprintf(stderr, "\n");
                 c->tick = 0;
         }
 
