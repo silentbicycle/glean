@@ -24,7 +24,7 @@
 #define SKIP_COMPRESS 0
 
 /* Should we use u_int16_t or u_int32_t for hashes? */
-#define FOUR_BYTE_HASH 0
+#define FOUR_BYTE_HASH 1
 
 #if FOUR_BYTE_HASH
 typedef u_int32_t hash_t;
