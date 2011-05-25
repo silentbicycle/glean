@@ -33,6 +33,7 @@
 #include "tokenize.h"
 
 #define BUF_SZ 64 * 1024
+#define DEBUG_IMB (DEBUG || 0)
 
 static char buf[BUF_SZ];
 
@@ -45,13 +46,14 @@ static off_t getsz(int id) {
 /* Based on the first read, is the file mostly textual?
  * If the first read is really small, just assume it's ok. */
 static int is_mostly_binary(size_t ct, char *buf) {
-        int i, ok=0;
+        int i, ok=0, imb;
         if (ct < 100) return 0;
 
         for (i=0; i<ct; i++) if (isalnum(buf[i]) || isspace(buf[i]) || ispunct(buf[i])) ok++;
-        if (DEBUG) fprintf(stderr, "is_mostly_binary: %d %ld %f -> %d\n",
-            ok, ct, ok / (ct * 1.0), (ok / (ct * 1.0)) < MIN_TOKEN_PRINTABLE);
-        return (ok / (ct * 1.0)) < MIN_TOKEN_PRINTABLE;
+        imb = (ok / (ct * 1.0)) < MIN_TOKEN_PRINTABLE;
+        if (DEBUG_IMB) fprintf(stderr, "is_mostly_binary: %d %ld %f -> %d\n",
+            ok, ct, ok / (ct * 1.0), imb);
+        return imb;
 }
 
 /* Loop over the file, reading a chunk at a time, saving every known word. */
