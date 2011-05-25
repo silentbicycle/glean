@@ -96,6 +96,13 @@ static FILE *open_gln_log(context *c, const char *fname) {
 static char *default_ignore_REs[] = {
         /* version control systems */
         "\\.git/", "\\.hg/", "CVS/",
+        /* emacs backup files */
+        "~$",
+        /* Various extensions for file types that may begin w/ text headers.
+         * This is a short-term fix, really text/binary classification
+         * needs improvement. */
+        "\\.mp3$", "\\.pdf$", "\\.jpg$", "\\.ogg$", "\\.ppt$",
+        "\\.zip$", "\\.chm$",
         NULL,
 };
 
