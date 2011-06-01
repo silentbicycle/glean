@@ -54,6 +54,7 @@
       (with-current-buffer buf
         ;; should probably create a mode keymap...
         (local-set-key (kbd "RET") 'ffap)
+        (local-set-key (kbd "o") 'ffap-other-window)
         (local-set-key (kbd "q") 'delete-window)
         (toggle-read-only 1))
       (switch-to-buffer-other-window buf))))
