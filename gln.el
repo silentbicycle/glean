@@ -39,20 +39,24 @@
 (defvar glean-index-root (getenv "HOME")
   "Root path for files to index.")
 
-(defun glean (query)
+(defun glean (query &optional db-path)
   "Search with glean."
   (interactive "sGlean search: ")
-  (let ((buf (get-buffer "*glean-results*")))
-    (when buf
-      (kill-buffer buf)))
-  (let* ((proc (start-process "gln" "*glean-results*" "gln" "-d" glean-db-path query))
-         (buf (get-buffer "*glean-results*")))
-    (with-current-buffer buf
-      ;; should probably create a mode keymap...
-      (local-set-key (kbd "RET") 'ffap)
-      (local-set-key (kbd "q") 'delete-window)
-      (toggle-read-only 1))
-    (switch-to-buffer-other-window buf)))
+  (let ((buf (get-buffer "*glean-results*"))
+        (db (or db-path glean-db-path)))
+    (when buf (kill-buffer buf))
+    (let* ((query-words (split-string query))
+           (args `("gln" "*glean-results*"
+                         "gln" "-d" ,db
+                         ,@query-words))
+           (proc (apply #'start-process args))
+           (buf (get-buffer "*glean-results*")))
+      (with-current-buffer buf
+        ;; should probably create a mode keymap...
+        (local-set-key (kbd "RET") 'ffap)
+        (local-set-key (kbd "q") 'delete-window)
+        (toggle-read-only 1))
+      (switch-to-buffer-other-window buf))))
 
 (defun glean-index ()
   "Build a glean index."
