@@ -86,7 +86,7 @@ static void add_pattern(re_group *g, char *pat, char *action) {
         strncpy(caction, action, len);
         v_array_append(g->res, re);
         v_array_append(g->ans, caction);
-        if (g->debug) printf("Added re #%d: %s\n", v_array_length(g->res), pat);
+        if (g->debug) fprintf(stderr, "Added re #%d: %s\n", v_array_length(g->res), pat);
 }
 
 static void extract_pattern(re_group *g, char *buf, size_t len) {
@@ -134,12 +134,11 @@ static void match_buf(re_group *g, char *buf) {
         regmatch_t pmatch;
         for (i=0; i<len; i++) {
                 ok = regexec(v_array_get(g->res, i), buf, 1, &pmatch, 0);
-                if (ok == 0) {
+                if (ok == 0) {  /* 0 means matched... */
                         if (g->debug)
                                 fprintf(stderr, "Rule %d matches: %s\n", i, buf);
                         printf("%s\n", (char *)v_array_get(g->ans, i));
                         return;
-                } else {
                 }
         }
         if (g->debug)
