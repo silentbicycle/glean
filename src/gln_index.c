@@ -320,16 +320,18 @@ static void enqueue_files(context *c) {
         size_t len;
         fname *fn;
         uint ct=0, sp = (c->verbose || c->show_progress);
+        int matched;
         if (c->find == NULL) return;
 
         if (sp) fprintf(stderr, "-- enqueueing all files to index\n");
 
         while ((buf = nextline(c->find, &len)) != NULL) {
-                if (filter_match(c->filter_fd, buf, len)) {
+                matched = filter_match(c->filter_fd, buf, len);
+                if (buf[len - 1] == '\n') buf[len - 1] = '\0';
+                if (matched) {
                         if (c->verbose || DEBUG)
                                 fprintf(stderr, "Ignoring: %s\n", buf);
                 } else {
-                        if (buf[len - 1] == '\n') buf[len - 1] = '\0';
                         fn = new_fname(buf, len);
                         v_array_append(c->fnames, fn);
                         if (c->verbose > 1) fprintf(stderr, "Appended: %d %s\n",
@@ -489,13 +491,16 @@ static int check_workers(context *c, fd_set *fdsr) {
 
 static void handle_args(context *c, int *argc, char **argv[]) {
         int f, iarg;
-        while ((f = getopt(*argc, *argv, "hVvpcCud:r:w:s")) != -1) {
+        while ((f = getopt(*argc, *argv, "hVvpcCud:r:w:f:s")) != -1) {
                 switch (f) {
                 case 'h':       /* help */
                         usage();
                         break;
                 case 'v':       /* verbose */
                         c->verbose++;
+                        if (c->verbose > 1 &&
+                            setenv("GLN_FILTER_DEBUG", "1", 1) == -1)
+                                err(1, "setenv");
                         break;
 #if NYI
                 case 'u':       /* update existing db */
@@ -526,6 +531,10 @@ static void handle_args(context *c, int *argc, char **argv[]) {
                                 exit(1);
                         }
                         c->w_ct = iarg;
+                        break;
+                case 'f':       /* set filtering config. file */
+                        if ((setenv("GLN_FILTER_FILE", optarg, 1)) == -1)
+                                err(1, "setenv");
                         break;
                 case 's':       /* ID and filter stop words */
                         c->use_stop_words = 1;
