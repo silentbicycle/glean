@@ -18,7 +18,6 @@
 #include "hash.h"
 #include "fhash.h"
 #include "whash.h"
-#include "ignore.h"
 #include "gln_index.h"
 #include "db.h"
 #include "gln.h"

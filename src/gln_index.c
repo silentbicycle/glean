@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -12,9 +13,9 @@
 #include <err.h>
 #include <errno.h>
 #include <math.h>
+#include <signal.h>
 
 #include "glean.h"
-#include "ignore.h"
 #include "hash.h"
 #include "whash.h"
 #include "fhash.h"
@@ -27,7 +28,7 @@
 #include "nextline.h"
 
 static void usage() {
-        puts("usage: gln_index [-hVvapcs] [-d DB_DIR] [-r INDEX_ROOT] [-w WORKER_CT]");
+        puts("usage: gln_index [-hVvpcs] [-d DB_DIR] [-r INDEX_ROOT] [-w WORKER_CT]");
         exit(1);
 }
 
@@ -92,20 +93,6 @@ static FILE *open_gln_log(context *c, const char *fname) {
         return log;
 }
 
-/* REs for filenames to always ignore */
-static char *default_ignore_REs[] = {
-        /* version control systems */
-        "\\.git/", "\\.hg/", "CVS/",
-        /* emacs backup files */
-        "~$",
-        /* Various extensions for file types that may begin w/ text headers.
-         * This is a short-term fix, really text/binary classification
-         * needs improvement. */
-        "\\.mp3$", "\\.pdf$", "\\.jpg$", "\\.ogg$", "\\.ppt$",
-        "\\.zip$", "\\.chm$",
-        NULL,
-};
-
 static int open_db(char *path, char *file, int update) {
         int plen = strlen(path), flen = strlen(file);
         char *fn;
@@ -123,8 +110,6 @@ static int open_db(char *path, char *file, int update) {
 
 static context *init_context() {
         context *c = alloc(sizeof(context), 'c');
-        char **pat;
-
         c->wkdir = default_gln_dir();
         c->root = NULL;
 
@@ -138,12 +123,6 @@ static context *init_context() {
         c->tct = c->toct = 0;
         c->fni = c->tick = c->tick_max = 0;
         c->fnames = v_array_init(16);
-
-        c->reg = ign_init_re_group();
-        for (pat = default_ignore_REs; *pat != NULL; pat++) {
-                ign_add_re(*pat, c->reg);
-        }
-
         c->w_ct = DEF_WORKER_CT;
         return c;
 }
@@ -156,6 +135,21 @@ static int fsize(int fd) {
         return sb.st_size;
 }
 
+static int open_filter_coprocess(int *pid) {
+        int res, sv[2];
+        if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == -1) err(1, "socketpair");
+        res = fork();
+        if (res == -1) {
+                err(1, "fork");
+        } else if (res == 0) {  /* child */
+                dup2(sv[1], STDIN_FILENO),
+                dup2(sv[1], STDOUT_FILENO);
+                if (execlp("gln_filter", "gln_filter", (char *)NULL) == -1)
+                        err(1, "exec");
+        }
+        *pid = res;
+        return sv[0];
+}
 
 static void init_files(context *c) {
         FILE *finder;
@@ -189,6 +183,7 @@ static void init_files(context *c) {
                 free(cwd);
         }
 
+        c->filter_fd = open_filter_coprocess(&c->filter_pid);
         c->tlog = open_gln_log(c, ".gln/tokens");
         c->settings = open_gln_log(c, ".gln/settings");
         c->swlog = open_gln_log(c, ".gln/stopwords");
@@ -250,7 +245,6 @@ static int assign_file(context *c) {
 static void free_context(context *c) {
         int i;
         worker *w;
-        ign_free_re_group(c->reg);
         table_free(c->wt, free_word);
         table_free(c->ft, free_fname);
         for (i=0; i<c->w_ct; i++) {
@@ -306,6 +300,21 @@ static int finish(context *c) {
         return res;               /* for now */
 }
 
+static int filter_match(int fd, char *fname, int len) {
+        char buf[4096];
+        int sz;
+        sz = write(fd, fname, len);
+        assert(sz > 0);
+        sz = read(fd, buf, 4095);
+        assert(sz > 0);
+        buf[sz] = '\0';
+        if (strncmp(buf, "ignore", sz - 1) == 0) return 1;
+        if (strncmp(buf, "index", sz - 1) == 0) return 0;
+        fprintf(stderr, "Bad filter response: %s\n"
+            "currently only 'ignore' and 'index' are supported.\n", buf);
+        return 1;
+}
+
 static void enqueue_files(context *c) {
         char *buf;
         size_t len;
@@ -313,20 +322,14 @@ static void enqueue_files(context *c) {
         uint ct=0, sp = (c->verbose || c->show_progress);
         if (c->find == NULL) return;
 
-        if (!c->index_dotfiles) {
-            ign_add_re("^\\..*", c->reg);
-            ign_add_re("/\\..*", c->reg);
-        }
-
-        if (sp)
-                fprintf(stderr, "-- enqueueing all files to index\n");
+        if (sp) fprintf(stderr, "-- enqueueing all files to index\n");
 
         while ((buf = nextline(c->find, &len)) != NULL) {
-                if (buf[len - 1] == '\n') buf[len - 1] = '\0';
-                if (ign_match(buf, c->reg)) {
+                if (filter_match(c->filter_fd, buf, len)) {
                         if (c->verbose || DEBUG)
                                 fprintf(stderr, "Ignoring: %s\n", buf);
                 } else {
+                        if (buf[len - 1] == '\n') buf[len - 1] = '\0';
                         fn = new_fname(buf, len);
                         v_array_append(c->fnames, fn);
                         if (c->verbose > 1) fprintf(stderr, "Appended: %d %s\n",
@@ -336,7 +339,13 @@ static void enqueue_files(context *c) {
                                 fprintf(stderr, "%u files enqueued...\n", ct);
                 }
         }
+
+        /* clean up find & filter processes */
+        if (close(c->filter_fd) == -1) err(1, "close");
+        if ((kill(c->filter_pid, SIGKILL)) == -1) err(1, "kill");
+        if ((wait(NULL) == -1)) err(1, "wait");
         c->find = NULL;
+
         c->tick_max = v_array_length(c->fnames) / 100;
 
         if (sp) fprintf(stderr, "-- enqueueing done, indexing %u files\n", ct);
@@ -480,7 +489,7 @@ static int check_workers(context *c, fd_set *fdsr) {
 
 static void handle_args(context *c, int *argc, char **argv[]) {
         int f, iarg;
-        while ((f = getopt(*argc, *argv, "hVvpacCud:r:w:s")) != -1) {
+        while ((f = getopt(*argc, *argv, "hVvpcCud:r:w:s")) != -1) {
                 switch (f) {
                 case 'h':       /* help */
                         usage();
@@ -493,9 +502,6 @@ static void handle_args(context *c, int *argc, char **argv[]) {
                         c->update = 1;
                         break;
 #endif
-                case 'a':       /* don't ignore .* */
-                        c->index_dotfiles = 1;
-                        break;
                 case 'p':       /* show progress */
                         c->show_progress = 1;
                         break;

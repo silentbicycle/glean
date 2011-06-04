@@ -26,9 +26,10 @@ typedef struct context {
         int fdb_fd;             /* filename DB descriptor */
         int tdb_fd;             /* token DB descriptor */
         FILE *find;             /* pipe to find */
+        int filter_fd;          /* fd for gln_filter coprocess */
+        int filter_pid;         /* pid for same */
         int max_tid;            /* max known token ID */
         int max_w_socket;       /* max worker socket file ID */
-        re_group *reg;          /* REs for files to ignore */
         table *ft;              /* filename table */
         table *wt;              /* known words table */
         struct v_array *fnames; /* filename array */

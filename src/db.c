@@ -13,7 +13,6 @@
 #include "hash.h"
 #include "whash.h"
 #include "fhash.h"
-#include "ignore.h"
 #include "hash.h"
 #include "array.h"
 #include "gln_index.h"

@@ -11,7 +11,6 @@
 #include "glean.h"
 #include "hash.h"
 #include "whash.h"
-#include "ignore.h"
 #include "gln_index.h"
 #include "stopword.h"
 
