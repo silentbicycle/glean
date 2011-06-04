@@ -1,0 +1,20 @@
+# this is a comment
+
+# skip dotfiles
+/\.
+
+# VC data
+\.git
+\.hg
+CVS/
+
+# emacs backup files
+~$
+
+# other binary file types that often have textual headers
+\.mp3$
+\.pdf$
+\.jpg$
+\.ogg$
+\.ppt$
+\.zip$
