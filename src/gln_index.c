@@ -28,7 +28,8 @@
 #include "nextline.h"
 
 static void usage() {
-        puts("usage: gln_index [-hVvpcs] [-d DB_DIR] [-r INDEX_ROOT] [-w WORKER_CT]");
+        puts("usage: gln_index [-hVvpcs] [-d DB_DIR] [-r INDEX_ROOT] \n"
+            "[-f FILTER_CONFIG_FILE] [-w WORKER_CT]");
         exit(1);
 }
 
