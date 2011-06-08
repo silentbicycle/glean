@@ -9,10 +9,12 @@ gln_index \- indexer for glean
 .RB [ \-a ]
 .RB [ \-p ]
 .RB [ \-c ]
+.RB [ \-C ]
 .RB [ \-s ]
 .RB [ \-d " <db_dir>"]
 .RB [ \-r " <index_root>"]
 .RB [ \-w " <worker_count>"]
+.RB [ \-f " <filter_file>"]
 .SH DESCRIPTION
 gln_index builds the index for glean. It reads all files in a directory
 tree, then records which files contain which tokens.
@@ -32,6 +34,9 @@ show progress while generating index.
 .B \-c
 make indexing case-sensitive (default: case-insensitive).
 .TP
+.B \-C
+use a compressed token index. This saves space, but makes all queries a bit slower.
+.TP
 .B \-s
 enable experimental stopword support; this reduces index size somewhat
 by omitting very common words that probably have little semantic
@@ -45,6 +50,9 @@ sets the base directory which should be indexed (default: ~).
 .TP
 .B \-w <worker_count>
 sets the number of tokenizer processes to spawn (default: 8).
+.TP
+.B \-f <filter_file>
+specifies the index/ignore configuration file for gln_filter.
 .SH EXIT STATUS
 .BR gln_index
 returns 0 on success or 1 on error.
