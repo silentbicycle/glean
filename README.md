@@ -12,9 +12,9 @@ Look at `src/config.mk`. (You probably won't need to edit it.)
 
 Usage:
 
-    gln_index -p     # index ~, store index in ~; -p = show-progress
+    gln_index -p     # index all text-y files in ~, store index in ~./gln/; -p = show-progress
 
-    gln foo          # show all lines containing foo
+    gln foo bar OR baz          # show all lines containing foo AND (bar OR baz)
 
 For more info, look at the man pages.
 
@@ -24,7 +24,7 @@ With many search indexing systems, the index can be 30-50% the size of
 indexed content. Glean's index is a svelte 2-5%, and builds rapidly.
 
 Glean falls back on grep at the file level, and is much more efficient for
-searching lots of small files, rather than a few larger (25+ MB) ones.
+searching lots of small-to-medium files, rather than a few larger (25+ MB) ones.
 
 The prototype/ directory contains the original prototype (in Lua). Glean
 follows this essential design, the rest is implementation details.
