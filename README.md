@@ -16,7 +16,7 @@ Usage:
 
     gln foo bar OR baz          # show all lines containing foo AND (bar OR baz)
 
-For more info, look at the man pages.
+For more info, look at the man pages or HTML docs in doc/.
 
 It's like `grep -r ~ foo`, but much faster.
 
