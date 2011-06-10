@@ -304,7 +304,9 @@ static int finish(context *c) {
 static int filter_match(int fd, char *fname, int len) {
         char buf[4096];
         int sz;
-        sz = write(fd, fname, len);
+        strncpy(buf, fname, len + 1);
+        buf[len-1] = '\n'; buf[len] = '\0';    /* for getline */
+        sz = write(fd, buf, len);
         assert(sz > 0);
         sz = read(fd, buf, 4095);
         assert(sz > 0);
