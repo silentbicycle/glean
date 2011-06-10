@@ -31,6 +31,7 @@ gln_filter: gln_filter.c ${GLN_FILTER_O}
 gln: gln.c ${GLN_O}
 	${CC} -o $@ gln.c ${GLN_O} ${COPTS} -lz
 
+#TODO: actually install man pages.
 install:
 	install ${PROGS} ${PREFIX}bin
 
@@ -43,7 +44,6 @@ lint:
 
 gln_tests: tests/tests.c
 	${CC} -o $@ tests/tests.c -I${CHECK_INC_PATH} -L${CHECK_LIB_PATH} -lcheck
-
 
 *.c: glean.h alloc.h Makefile
 
