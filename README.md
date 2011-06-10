@@ -12,7 +12,7 @@ Look at `src/config.mk`. (You probably won't need to edit it.)
 
 Usage:
 
-    gln_index -p     # index all text-y files in ~, store index in ~./gln/; -p = show-progress
+    gln_index -p     # index all text-ish files in ~, store index in ~./gln/; -p = show-progress
 
     gln foo bar OR baz          # show all lines containing foo AND (bar OR baz)
 

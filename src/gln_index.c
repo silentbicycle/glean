@@ -52,7 +52,7 @@ static void start_worker(int fd, int case_sensitive) {
         dup2(fd, 0);            /* set stdin & stdout to full-duplex pipe */
         dup2(fd, 1);
         if (execlp("gln_tokens", "gln_tokens", cs, (char *)NULL) == -1)
-                err(1, "worker exec fail (is gln_tokens in your path?)");
+                err(1, "worker execlp fail (is gln_tokens in your path?)");
 }
 
 /* Initialize an individual worker process. */
@@ -146,7 +146,7 @@ static int open_filter_coprocess(int *pid) {
                 dup2(sv[1], STDIN_FILENO),
                 dup2(sv[1], STDOUT_FILENO);
                 if (execlp("gln_filter", "gln_filter", (char *)NULL) == -1)
-                        err(1, "exec");
+                        err(1, "filter execlp fail (is gln_filter in your path?");
         }
         *pid = res;
         return sv[0];
