@@ -42,6 +42,7 @@ typedef struct dbinfo {
         int greponly;             /* 1=just print grep command line */
         int grepnames;            /* 0=no names, 1=show names, 2=names only */
         int subtoken;             /* 0=search tokens for ^%s$, 1=allow subtoken query */
+        int tokens_only;          /* print matching tokens and exit */
         int compressed;           /* is the tokens file compressed? */
         int case_sensitive;
 } dbinfo;

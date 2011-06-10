@@ -30,10 +30,10 @@
 /* How many filenames to check at a time - if the filenames concat to
  * longer than ARG_MAX (typically, 256 kb), the buffer passed to grep
  * will cause a segfault.
- * 
- * TODO: Handle this better, factoring in sum of token and filename
- * sizes. This should probably be determined dynamically, based on how
- * full the command line buffer grows. */
+ *
+ * When used with multiple pipelined greps, a smaller batch size means
+ * more processes used, but also faster results (due to buffering).
+ */
 #define BATCH_SIZE 100
 
 static void usage() {
@@ -51,7 +51,7 @@ static dbinfo *init_dbinfo() {
         db->gln_dir = default_gln_dir();
         db->grepnames = 1;
         db->compressed = 0;
-        db->verbose = db->subtoken = 0;
+        db->verbose = db->subtoken = db->tokens_only = 0;;
         return db;
 }
 
@@ -447,6 +447,7 @@ static void get_matching_tokens(dbinfo *db) {
                         v_array_append(g->tokens, tok);
                         hash = hash_word(buf);
                         h_array_append(g->thashes, hash);
+                        if (db->tokens_only) printf("%s\n", tok);
                 }
                 ct = h_array_length(g->thashes);
                 if (ct > TOO_MANY_MATCHES)
@@ -679,6 +680,10 @@ static void lookup_query(dbinfo *db) {
         char *fn;
 
         get_matching_tokens(db);
+        if (db->tokens_only) {
+                
+                return;
+        }
         get_matching_file_hashes(db);
         if (db->verbose > 1) dump_grep(db->g);
 
@@ -719,7 +724,7 @@ static void lookup_query(dbinfo *db) {
 static char handle_args(dbinfo *db, int *argc, char **argv[]) {
         int fl;
         char mode = 'g';
-        while ((fl = getopt(*argc, *argv, "hDHvd:nNgs")) != -1) {
+        while ((fl = getopt(*argc, *argv, "hDHvd:nNgst")) != -1) {
                 switch (fl) {
                 case 'h':       /* help */
                         usage();
@@ -746,6 +751,8 @@ static char handle_args(dbinfo *db, int *argc, char **argv[]) {
                 case 's':       /* "subtoken": don't wrap token pattern in ^$ */
                         db->subtoken = 1;
                         break;
+                case 't':       /* "token", print matching tokens and exit */
+                        db->tokens_only = 1;
                 case 'g':       /* don't actually grep, just print cmd */
                         db->greponly = 1;
                         break;
