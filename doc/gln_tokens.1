@@ -1,0 +1,33 @@
+.TH GLN_TOKENS 1
+.SH NAME
+gln_tokens \- extract tokens from files
+.SH SYNOPSIS
+.B gln_tokens
+.RB [ \-c ]
+.SH DESCRIPTION
+When gln_tokens reads a filename on standard input, it reads the file
+contents, then prints the set of tokens and their counts.
+
+It is used internally by
+.B gln_index(1),
+but can also be run standalone to see the list of tokens in a file.
+.SS Options
+.TP
+.B \-c
+Turn on case-sensitive indexing.
+.SH EXIT STATUS
+.BR gln_tokens
+returns 0 on success or 1 on error. If gln_tokens does not hear from
+gln_index within a minute, it will timeout and exit.
+.SH SEE ALSO
+.BR glean (1),
+.BR gln_index (1),
+.BR gln_filter (1),
+.BR isalpha (3),
+.BR gln (1).
+.SH BUGS
+Currently, only consecutive groups of ASCII letters are indexed (according to
+isalpha()), not numbers or punctuation. Support for more sophisticated indexing
+(handling email addresses, non-English text, etc.) is not yet implemented.
+.SH AUTHOR
+Scott Vokes <vokes.s@gmail.com>

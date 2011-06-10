@@ -56,20 +56,22 @@ tokens that contain the search tokens as substrings.
 do not execute the grep pipeline, just print it and exit.
 .TP
 .B \-D
-dump index database and exit.
+dump info about index database and exit. With
+.B \-v
+option, also dump contents.
 .SS Queries
 A query consists of one or more tokens and optional keywords. Each token
 represents a regular expression to search for, and keywords affect the
 interaction of multiple tokens. (Keywords must be in uppercase.)
 .TP
 .B a AND b
-Require both tokens to occur in the same file.
+Require both tokens to occur in the same line.
 .TP
 .B a OR b
-Either 'a' or 'b' must occur in the file; show results for either.
+Either 'a' or 'b' must occur in the file; show lines containing either.
 .TP
 .B a NOT b
-Do not show results for files containing 'a' if they contain 'b'.
+Do not show results for files containing 'a' if they contain 'b' (on any line).
 .TP
 .B a NEAR b
 Search files that have 'a' within
@@ -79,19 +81,29 @@ lines of 'b'. (Not yet implemented.)
 .P
 .B $ gln foo
 .P
-Search all files indexed for "foo".
+Search all indexed files for "foo".
+.P
+.B $ gln -d. foo bar
+.P
+.P
+Search files for "foo" and "bar" that have an index in the current directory.
 .P
 .B $ gln -d ~/dev/project/ stopword OR index AND NOT btree
 .P
 Search all files indexed in
 .B ~/dev/project/
 for lines containing either "stopword" or "index" that do not contain "btree".
+.P
+.B $ gln """erl.*"""
+.P
+Search all files for all tokens matching the regular expression "erl.*" (e.g. "erlang").
 .SH EXIT STATUS
 .BR gln
 returns 0 on success or 1 on error.
 .SH SEE ALSO
 .BR glean (1),
-.BR gln_index (1).
+.BR gln_index (1),
+.BR re_format (7).
 .SH AUTHOR
 Scott Vokes <vokes.s@gmail.com>
 

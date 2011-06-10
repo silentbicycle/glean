@@ -28,8 +28,9 @@ print version and exit.
 .TP
 .B \-v
 increase verbosity (can be used multiple times).
+.TP
 .B \-p
-show progress while generating index.
+show progress and estimated time remaining while generating index.
 .TP
 .B \-c
 make indexing case-sensitive (default: case-insensitive).
@@ -39,8 +40,8 @@ use a compressed token index. This saves space, but makes all queries a bit slow
 .TP
 .B \-s
 enable experimental stopword support; this reduces index size somewhat
-by omitting very common words that probably have little semantic
-influence.
+by omitting very common words (e.g. "the") that probably have little semantic
+influence. Stopwords are determined statistically (not from a fixed list).
 .TP
 .B \-d <db_dir>
 sets where to store the .gln index subdirectly (default: ~).
@@ -49,15 +50,19 @@ sets where to store the .gln index subdirectly (default: ~).
 sets the base directory which should be indexed (default: ~).
 .TP
 .B \-w <worker_count>
-sets the number of tokenizer processes to spawn (default: 8).
+sets the number of tokenizer processes to spawn (default: 8). Each worker can
+take advantage of a separate CPU core, though using too many workers is
+counterproductive - they will just fight over the same disk.
 .TP
 .B \-f <filter_file>
-specifies the index/ignore configuration file for gln_filter.
+specifies the index/ignore configuration file for gln_filter. (See gln_filter(1).)
 .SH EXIT STATUS
 .BR gln_index
 returns 0 on success or 1 on error.
 .SH SEE ALSO
 .BR glean (1),
+.BR gln_filter (1),
+.BR gln_tokens (1),
 .BR gln (1).
 .SH BUGS
 Updating an existing index is not (yet) supported - it must be rebuilt from scratch.

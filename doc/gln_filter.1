@@ -6,9 +6,9 @@ gln_filter \- index/ignore classifier for glean
 .RB [ \-d ]
 .RB [ config_file ]
 .SH DESCRIPTION
-gln_filter checks filenames against patterns in a configuration fileThis
-is used to determine whether it should attempt to index files; it will
-also bail if a file contains a sufficiently large percentage of
+gln_filter checks filenames against patterns in a configuration file.
+This is used to determine whether it should attempt to index files; it
+will also skip files contains a sufficiently large percentage of
 nonprintable data, but ruling out binary files via filenames is faster.
 .SS Options
 .TP
@@ -24,13 +24,14 @@ followed by a space, and then either "ignore" or "index". The first
 match wins, so early, specific patterns can override more general cases.
 If the regular expression contains a space, wrap it in quotes. Empty
 lines and lines beginning with '#' are ignored. For an example, see
-examples/example_filter_file.
+examples/example_filter_file (which also contains the defaults).
 .SH EXIT STATUS
 .BR gln_filter
 returns 0 on success or 1 on error.
 .SH SEE ALSO
 .BR glean (1),
 .BR gln_index (1),
+.BR re_format (7),
 .BR gln (1).
 .SH AUTHOR
 Scott Vokes <vokes.s@gmail.com>
