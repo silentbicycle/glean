@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="resource-type" content="document">
+<title>
+GLN_FILTER(1)</title>
+</head>
+<body>
+<table summary="Document Header" class="head" width="100%">
+<col width="30%">
+<col width="30%">
+<col width="30%">
+<tbody>
+<tr>
+<td class="head-ltitle">
+GLN_FILTER(1)</td>
+<td class="head-vol" align="center">
+</td>
+<td class="head-rtitle" align="right">
+GLN_FILTER(1)</td>
+</tr>
+</tbody>
+</table>
+<div class="section">
+<h1>NAME</h1> gln_filter &#45; index/ignore classifier for glean</div>
+<div class="section">
+<h1>SYNOPSIS</h1> <b>gln_filter</b> [<b>&#45;d</b>] [<b>config_file</b>]</div>
+<div class="section">
+<h1>DESCRIPTION</h1> gln_filter checks filenames against patterns in a configuration file. This is used to determine whether it should attempt to index files; it will also skip files contains a sufficiently large percentage of nonprintable data, but ruling out binary files via filenames is faster.<div class="subsection">
+<h2>Options</h2><p>
+<table>
+<col style="width: 5.00ex;">
+<col>
+<tbody>
+<tr>
+<td>
+<b>&#45;d</b></td>
+<td>
+Turn on debugging traces.</td>
+</tr>
+</tbody>
+</table>
+<p>
+<table>
+<col style="width: 5.00ex;">
+<col>
+<tbody>
+<tr>
+<td>
+<b>(config_file)</b></td>
+<td>
+Use the specified configuration file. Used while testing by running gln_filter directly; to use a filter config file with gln_index, use the -f option.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section">
+<h1>CONFIG FORMAT</h1> Each line should contain a regular expression to match filenames, followed by a space, and then either "ignore" or "index". The first match wins, so early, specific patterns can override more general cases. If the regular expression contains a space, wrap it in quotes. Empty lines and lines beginning with '#' are ignored. For an example, see examples/example_filter_file (which also contains the defaults).</div>
+<div class="section">
+<h1>EXIT STATUS</h1> <b>gln_filter</b> returns 0 on success or 1 on error.</div>
+<div class="section">
+<h1>SEE ALSO</h1> <b>glean</b>(1), <b>gln_index</b>(1), <b>re_format</b>(7), <b>gln</b>(1).</div>
+<div class="section">
+<h1>AUTHOR</h1> Scott Vokes &lt;vokes.s@gmail.com&gt;</div>
+<table summary="Document Footer" class="foot" width="100%">
+<col width="50%">
+<col width="50%">
+<tr>
+<td class="foot-date">
+June 10, 2011</td>
+<td class="foot-os" align="right">
+</td>
+</tr>
+</table>
+</body>
+</html>
+

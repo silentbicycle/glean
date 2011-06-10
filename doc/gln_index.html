@@ -1,0 +1,196 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="resource-type" content="document">
+<title>
+GLN_INDEX(1)</title>
+</head>
+<body>
+<table summary="Document Header" class="head" width="100%">
+<col width="30%">
+<col width="30%">
+<col width="30%">
+<tbody>
+<tr>
+<td class="head-ltitle">
+GLN_INDEX(1)</td>
+<td class="head-vol" align="center">
+</td>
+<td class="head-rtitle" align="right">
+GLN_INDEX(1)</td>
+</tr>
+</tbody>
+</table>
+<div class="section">
+<h1>NAME</h1> gln_index &#45; indexer for glean</div>
+<div class="section">
+<h1>SYNOPSIS</h1> <b>gln_index</b> [<b>&#45;h</b>] [<b>&#45;V</b>] [<b>&#45;v</b>] [<b>&#45;a</b>] [<b>&#45;p</b>] [<b>&#45;c</b>] [<b>&#45;C</b>] [<b>&#45;s</b>] [<b>&#45;d</b> &lt;db_dir&gt;<b>]</b> [<b>&#45;r</b> &lt;index_root&gt;<b>]</b> [<b>&#45;w</b> &lt;worker_count&gt;<b>]</b> [<b>&#45;f</b> &lt;filter_file&gt;<b>]</b></div>
+<div class="section">
+<h1>DESCRIPTION</h1> gln_index builds the index for glean. It reads all files in a directory tree, then records which files contain which tokens.<div class="subsection">
+<h2>Options</h2><p>
+<table>
+<col style="width: 5.00ex;">
+<col>
+<tbody>
+<tr>
+<td>
+<b>&#45;h</b></td>
+<td>
+print help information and exit.</td>
+</tr>
+</tbody>
+</table>
+<p>
+<table>
+<col style="width: 5.00ex;">
+<col>
+<tbody>
+<tr>
+<td>
+<b>&#45;V</b></td>
+<td>
+print version and exit.</td>
+</tr>
+</tbody>
+</table>
+<p>
+<table>
+<col style="width: 5.00ex;">
+<col>
+<tbody>
+<tr>
+<td>
+<b>&#45;v</b></td>
+<td>
+increase verbosity (can be used multiple times).</td>
+</tr>
+</tbody>
+</table>
+<p>
+<table>
+<col style="width: 5.00ex;">
+<col>
+<tbody>
+<tr>
+<td>
+<b>&#45;p</b></td>
+<td>
+show progress and estimated time remaining while generating index.</td>
+</tr>
+</tbody>
+</table>
+<p>
+<table>
+<col style="width: 5.00ex;">
+<col>
+<tbody>
+<tr>
+<td>
+<b>&#45;c</b></td>
+<td>
+make indexing case-sensitive (default: case-insensitive).</td>
+</tr>
+</tbody>
+</table>
+<p>
+<table>
+<col style="width: 5.00ex;">
+<col>
+<tbody>
+<tr>
+<td>
+<b>&#45;C</b></td>
+<td>
+use a compressed token index. This saves space, but makes all queries a bit slower.</td>
+</tr>
+</tbody>
+</table>
+<p>
+<table>
+<col style="width: 5.00ex;">
+<col>
+<tbody>
+<tr>
+<td>
+<b>&#45;s</b></td>
+<td>
+enable experimental stopword support; this reduces index size somewhat by omitting very common words (e.g. "the") that probably have little semantic influence. Stopwords are determined statistically (not from a fixed list).</td>
+</tr>
+</tbody>
+</table>
+<p>
+<table>
+<col style="width: 5.00ex;">
+<col>
+<tbody>
+<tr>
+<td>
+<b>&#45;d &lt;db_dir&gt;</b></td>
+<td>
+sets where to store the .gln index subdirectly (default: ~).</td>
+</tr>
+</tbody>
+</table>
+<p>
+<table>
+<col style="width: 5.00ex;">
+<col>
+<tbody>
+<tr>
+<td>
+<b>&#45;r &lt;index_root&gt;</b></td>
+<td>
+sets the base directory which should be indexed (default: ~).</td>
+</tr>
+</tbody>
+</table>
+<p>
+<table>
+<col style="width: 5.00ex;">
+<col>
+<tbody>
+<tr>
+<td>
+<b>&#45;w &lt;worker_count&gt;</b></td>
+<td>
+sets the number of tokenizer processes to spawn (default: 8). Each worker can take advantage of a separate CPU core, though using too many workers is counterproductive - they will just fight over the same disk.</td>
+</tr>
+</tbody>
+</table>
+<p>
+<table>
+<col style="width: 5.00ex;">
+<col>
+<tbody>
+<tr>
+<td>
+<b>&#45;f &lt;filter_file&gt;</b></td>
+<td>
+specifies the index/ignore configuration file for gln_filter. (See gln_filter(1).)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section">
+<h1>EXIT STATUS</h1> <b>gln_index</b> returns 0 on success or 1 on error.</div>
+<div class="section">
+<h1>SEE ALSO</h1> <b>glean</b>(1), <b>gln_filter</b>(1), <b>gln_tokens</b>(1), <b>gln</b>(1).</div>
+<div class="section">
+<h1>BUGS</h1> Updating an existing index is not (yet) supported - it must be rebuilt from scratch. Fortunately, this is reasonably fast.</div>
+<div class="section">
+<h1>AUTHOR</h1> Scott Vokes &lt;vokes.s@gmail.com&gt;</div>
+<table summary="Document Footer" class="foot" width="100%">
+<col width="50%">
+<col width="50%">
+<tr>
+<td class="foot-date">
+June 10, 2011</td>
+<td class="foot-os" align="right">
+</td>
+</tr>
+</table>
+</body>
+</html>
+

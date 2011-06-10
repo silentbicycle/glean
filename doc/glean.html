@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="resource-type" content="document">
+<title>
+GLEAN(1)</title>
+</head>
+<body>
+<table summary="Document Header" class="head" width="100%">
+<col width="30%">
+<col width="30%">
+<col width="30%">
+<tbody>
+<tr>
+<td class="head-ltitle">
+GLEAN(1)</td>
+<td class="head-vol" align="center">
+</td>
+<td class="head-rtitle" align="right">
+GLEAN(1)</td>
+</tr>
+</tbody>
+</table>
+<div class="section">
+<h1>NAME</h1> glean &#45; search engine for local text content</div>
+<div class="section">
+<h1>DESCRIPTION</h1> glean is a fast, lightweight search engine for large collections of text files. Rather than indexing every location where each token occurs (potentially 40-50+% the size of the indexed content), its index maps tokens to files, but falls back on <b>grep</b> at the file level. Consequently, its index is proportionately much smaller (typically only 2-3%), and can be quickly (re-)built.<p>
+<b>gln_index(1)</b> is used to build the index, and <b>gln(1)</b> is used for searching. gln_index runs gln_filter(1) to determine whether files should be indexed or ignored, and gln_tokens(1) to get the set of tokens present in indexed files.<p>
+The indexed files are not required to have any specific structure; they are just treated as lists of whitespace-separated words. It's designed to be used as a first-pass index for <i>everything,</i> to maximize serendipitous discovery. The results from glean are like those from <b>grep -r foo /</b> , only much faster.</div>
+<div class="section">
+<h1>SEE ALSO</h1> <b>gln</b>(1), <b>gln_index</b>(1), <b>gln_tokens</b>(1), <b>gln_filter</b>(1),</div>
+<div class="section">
+<h1>BUGS</h1> Glean works well with lots of small files, but is inefficient when searching huge (&gt;10-25 MB) files; grep searches them as a whole. A secondary indexing mode for large files (based on delta-encoded page offsets) is planned but not yet implemented.<p>
+Bugs and other issues are listed on the github page at <b>http://github.com/silentbicycle/glean.</b><p>
+</div>
+<div class="section">
+<h1>AUTHOR</h1> Scott Vokes &lt;vokes.s@gmail.com&gt;</div>
+<table summary="Document Footer" class="foot" width="100%">
+<col width="50%">
+<col width="50%">
+<tr>
+<td class="foot-date">
+June 10, 2011</td>
+<td class="foot-os" align="right">
+</td>
+</tr>
+</table>
+</body>
+</html>
+
