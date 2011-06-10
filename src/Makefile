@@ -34,6 +34,7 @@ gln: gln.c ${GLN_O}
 #TODO: actually install man pages.
 install:
 	install ${PROGS} ${PREFIX}bin
+	install ../doc/*.1 ${MANPATH1}
 
 uninstall:
 	rm -f ${PREFIX}bin/gln_{index,tokens}

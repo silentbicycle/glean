@@ -1,5 +1,6 @@
 # Installation base path.
 PREFIX= /usr/local/
+MANPATH= ${PREFIX}share/man
 
 # If the OS is not recognized, you may need to uncomment one of these.
 #COPTS += -DHAS_GETLINE
@@ -23,3 +24,4 @@ CHECK_LIB_PATH= ${PREFIX}lib/
 DEBUG += -g
 
 COPTS+= -O3 ${DEBUG}
+MANPATH1= ${MANPATH}/man1
