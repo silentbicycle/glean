@@ -565,7 +565,7 @@ static void get_matching_filenames(dbinfo *db) {
 #define ARG_MAX 256 * 1024
 #endif
 
-static const char *grepnames_opt[] = {"-h ", "", "-L "};
+static const char *grepnames_opt[] = {"-h ", "", "-l "};
 
 static void run_pipeline(dbinfo *db, int file_offset, int file_ct) {
         grep *g;
