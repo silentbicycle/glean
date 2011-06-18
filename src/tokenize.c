@@ -37,12 +37,6 @@
 
 static char buf[BUF_SZ];
 
-static off_t getsz(int id) {
-        struct stat sb;
-        if (fstat(id, &sb) == -1) err(1, "getsz fail");
-        return sb.st_size;
-}
-
 /* Based on the first read, is the file mostly textual?
  * If the first read is really small, just assume it's ok. */
 static int is_mostly_binary(size_t ct, char *buf) {
@@ -56,16 +50,45 @@ static int is_mostly_binary(size_t ct, char *buf) {
         return imb;
 }
 
-/* Loop over the file, reading a chunk at a time, saving every known word. */
-static int readloop(int fd, off_t len, table *wt, int case_sensitive) {
-        int i, j, last=0, inword=0;
-        size_t ct=0, read_sz, read_offset;
-        size_t off=0, last_off=0; /* file offset and offset of last token */
+static int scanner(table *wt, int ct, int *inword, int case_sensitive) {
+        int i, j, last = 0;
         char c;                   /* current byte */
-        int alf, diff; /* isalpha(c) flag; diff */
-        uint tokens = 0;
+        int alf, diff;            /* isalpha(c) flag; diff */
+        /* Scan along and save each consecutive alphabetical region. */
+        for (i=0; i<ct; i++) {
+                c = buf[i];
+                alf = isalpha(c);
+                
+                if (*inword && !alf) {     /* end of current token */
+                        *inword = 0; diff = i - last;
+                        if (diff >= MIN_WORD_SZ && diff < MAX_WORD_SZ) {
+                                if (!case_sensitive)
+                                        for (j=0; j<diff; j++)
+                                                buf[last+j] = tolower(buf[last+j]);
+                                add_word(wt, buf + last, diff);
+                        }
+                } else if (!*inword && alf) { /* start of new token */
+                        last = i;
+                        *inword = 1;
+                }
+        }
+        return last;
+}
+
+/* Loop over the file, reading a chunk at a time, saving every known word. */
+static int readloop(int fd, table *wt, int case_sensitive,
+                    int (*scan_fun)(table *, int, int *, int)) {
+        int last=0, inword=0;
+        size_t ct=0, read_sz, read_offset;
+        int diff;
+
+        read_sz = BUF_SZ; read_offset = 0;
+        if ((ct = read(fd, buf + read_offset, read_sz)) == -1) err(1, "read fail");
+        if (is_mostly_binary(ct, buf)) return 1;
 
         for (;;) {
+                last = scan_fun(wt, ct, &inword, case_sensitive);
+
                 read_sz = BUF_SZ; read_offset = 0;
 
                 /* If in the middle of a word, prepend the remainder to the
@@ -84,35 +107,6 @@ static int readloop(int fd, off_t len, table *wt, int case_sensitive) {
                 ct = read(fd, buf + read_offset, read_sz);
                 if (DEBUG) fprintf(stderr, "-- read %ld more %d\n", ct, inword);
                 if (ct < 1) break;
-
-                /* FIXME: Really, this check is still useful after the first X kb,
-                 * but number of valid words may be a more useful metric.
-                 * Also: could also fork "file -f - -i" here, very expensive though. */
-                if (off == 0 && is_mostly_binary(ct, buf)) return 1;
-
-                last = 0;
-
-                /* Scan along and save each consecutive alphabetical region. */
-                for (i=0; i<ct; i++) {
-                        c = buf[i];
-                        alf = isalpha(c);
-
-                        if (inword && !alf) {     /* end of current token */
-                                inword = 0; diff = i - last;
-                                if (diff >= MIN_WORD_SZ && diff < MAX_WORD_SZ) {
-                                        if (!case_sensitive)
-                                                for (j=0; j<diff; j++)
-                                                        buf[last+j] = tolower(buf[last+j]);
-                                        add_word(wt, buf + last, diff);
-                                }
-                                last_off = off;
-                                tokens++;
-                        } else if (!inword && alf) { /* start of new token */
-                                last = i;
-                                inword = 1;
-                        }
-                        off++;
-                }
         }
 
         if (ct == -1) err(1, "read fail");
@@ -122,15 +116,13 @@ static int readloop(int fd, off_t len, table *wt, int case_sensitive) {
 
 void tokenize_file(const char *fn, table *wt, int case_sensitive) {
         int fd = open(fn, O_RDONLY, 0);
-        off_t len;
         int skipped, res;
 
         if (fd == -1) {         /* warn and skip it */
                 perror(fn);
                 printf(" SKIP\n");
         } else {
-                len = getsz(fd);
-                skipped = readloop(fd, len, wt, case_sensitive);
+                skipped = readloop(fd, wt, case_sensitive, scanner);
                 res = close(fd);
                 assert(res == 0);
                 printf(skipped ? " SKIP\n" : " DONE\n");
