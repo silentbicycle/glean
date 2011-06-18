@@ -50,6 +50,10 @@ static int is_mostly_binary(size_t ct, char *buf) {
         return imb;
 }
 
+/* Given a read buffer of length (ct), identify and save individual tokens.
+ * 
+ * This (and whash.c's hash_word) will need to be changed for i18n.
+ * It should probably be made a config option. */
 static int scanner(table *wt, int ct, int *inword, int case_sensitive) {
         int i, j, last = 0;
         char c;                   /* current byte */
