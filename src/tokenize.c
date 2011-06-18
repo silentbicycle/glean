@@ -57,7 +57,7 @@ static int scanner(table *wt, int ct, int *inword, int case_sensitive) {
         /* Scan along and save each consecutive alphabetical region. */
         for (i=0; i<ct; i++) {
                 c = buf[i];
-                alf = isalpha(c);
+                alf = isalpha(c) || c == '-' || c == '_';
                 
                 if (*inword && !alf) {     /* end of current token */
                         *inword = 0; diff = i - last;
