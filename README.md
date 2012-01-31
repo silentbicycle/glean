@@ -1,3 +1,8 @@
+Note: I'm working on a some deep changes that won't land here until
+reasonably complete. If you use glean and wouldn't mind answering some
+questions (about what features you find most useful), email or send
+me a private message. Thanks!
+
 Glean is a lightweight search engine for local text docs.
 
 Run `gln_index` to build an index, then use `gln` to search.
