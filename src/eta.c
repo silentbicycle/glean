@@ -4,7 +4,6 @@
 #include <err.h>
 #include <math.h>
 #include <sys/time.h>
-#include <sys/types.h>
 
 #include "glean.h"
 

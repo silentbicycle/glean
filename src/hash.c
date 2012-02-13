@@ -4,7 +4,6 @@
 #include <assert.h>
 #include <err.h>
 #include <string.h>
-#include <sys/types.h>
 
 #include "glean.h"
 #include "hash.h"

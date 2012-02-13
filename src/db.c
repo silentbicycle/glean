@@ -7,7 +7,6 @@
 #include <err.h>
 #include <errno.h>
 #include <zlib.h>
-#include <sys/types.h>          /* for u_int32_t etc. */
 #include <ctype.h>
 
 #include "glean.h"

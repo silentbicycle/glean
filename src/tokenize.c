@@ -24,7 +24,6 @@
 #include <ctype.h>
 #include <err.h>
 #include <string.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 
 #include "glean.h"
