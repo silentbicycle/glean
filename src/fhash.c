@@ -10,8 +10,6 @@
 #include "whash.h"
 #include "fhash.h"
 
-#define HASH_MULTIPLIER 139
-
 uint fname_hash(void *v) {
     return hash_word(((fname *)v)->name);
 }
@@ -25,7 +23,6 @@ static int fname_cmp(void *a, void *b) {
     return strcmp(na, nb);
 }
 
-
 table *init_fname_table(int sz_factor) {
     return table_init(sz_factor, fname_hash, fname_cmp);
 }
@@ -37,7 +34,6 @@ fname *new_fname(char *n, size_t len) {
     res->name = name;
     return res;
 }
-
 
 void free_fname(void *f) {
     fname *fn = (fname *)f;
