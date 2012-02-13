@@ -56,7 +56,7 @@ static dbinfo *init_dbinfo() {
 }
 
 static void bail(char *s) {
-    fprintf(stderr, s);
+    fprintf(stderr, "%s", s);
     exit(1);
 }
 
@@ -76,21 +76,21 @@ static void open_dbs(dbinfo *db) {
     
     strncat(fn, fndb_fn, fnlen);
     if (DEBUG) fprintf(stderr, "opening %s\n", fn);
-    if ((stat(fn, &sb)) == -1) err(1, fn);
+    if ((stat(fn, &sb)) == -1) err(1, "%s", fn);
     flen = sb.st_size;
     if (flen < minlen) bail("Invalid fname.db.\n");
-    if ((ffd = open(fn, O_RDONLY, 0)) == -1) err(1, fn);
+    if ((ffd = open(fn, O_RDONLY, 0)) == -1) err(1, "%s", fn);
     if ((db->fdb = mmap(NULL, flen, PROT_READ, MAP_PRIVATE, ffd, 0)) == MAP_FAILED)
-        err(1, fn);
+        err(1, "%s", fn);
     
     strncpy(fn + root_len, tokdb_fn, fnlen);
     if (DEBUG) fprintf(stderr, "opening %s\n", fn);
-    if ((stat(fn, &sb)) == -1) err(1, fn);
+    if ((stat(fn, &sb)) == -1) err(1, "%s", fn);
     tlen = sb.st_size;
     if (flen < minlen) bail("Invalid token.db.\n");
-    if ((tfd = open(fn, O_RDONLY, 0)) == -1) err(1, fn);
+    if ((tfd = open(fn, O_RDONLY, 0)) == -1) err(1, "%s", fn);
     if ((db->tdb = mmap(NULL, tlen, PROT_READ, MAP_PRIVATE, tfd, 0)) == MAP_FAILED)
-        err(1, fn);
+        err(1, "%s", fn);
     
     free(fn);
 }
@@ -104,7 +104,7 @@ static void read_settings(dbinfo *db) {
     
     snprintf(path, path_len, "%s/.gln/settings", db->gln_dir);
     settings = fopen(path, "r");
-    if (settings == NULL) err(1, path);
+    if (settings == NULL) err(1, "%s", path);
     
 #define OPT(x) (strncmp(buf, x, strlen(x)) == 0)
     while ((buf = nextline(settings, &len)) != NULL) {
@@ -117,7 +117,7 @@ static void read_settings(dbinfo *db) {
     }
 #undef OPT
     
-    if (fclose(settings) != 0) err(1, path);
+    if (fclose(settings) != 0) err(1, "%s", path);
     
 }
 

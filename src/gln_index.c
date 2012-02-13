@@ -104,7 +104,7 @@ static int open_db(char *path, char *file, int update) {
     snprintf(fn, plen, "%s/%s", path, file);
     fd = open(fn, O_RDWR | (update ? 0 : O_TRUNC) | O_CREAT /* sic */, 0744);
     if (DEBUG) fprintf(stderr, "opening %s, got fd %d\n", fn, fd);
-    if (fd == -1) err(1, fn);
+    if (fd == -1) err(1, "%s", fn);
     free(fn);
     return fd;
 }
