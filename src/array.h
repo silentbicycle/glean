@@ -1,13 +1,14 @@
 #ifndef OCC_ARRAY_H
 #define OCC_ARRAY_H
 
-/* resizable uint -> hash_t array.
- * Separate since sizeof(hash_t) is much less than sizeof(void *),
- * and most live data is hash_t arrays - major memory savings. */
+/* Resizable uint -> hash_t array.
+ * Separate from v_array since sizeof(hash_t) is much less than
+ * sizeof(void *), and most live data is hash_t arrays - this leads
+ * to major memory savings. */
 typedef struct h_array {
-        uint sz;                /* allocated size */
-        uint len;               /* filled length */
-        hash_t *hs;             /* file hashes */
+    uint sz;                /* allocated size */
+    uint len;               /* filled length */
+    hash_t *hs;             /* file hashes */
 } h_array;
 
 h_array *h_array_init(uint sz);
@@ -22,9 +23,9 @@ h_array *h_array_complement(h_array *a, h_array *b);
 void h_array_free(h_array *a);
 
 typedef struct v_array {
-        uint sz;                /* allocated size */
-        uint len;               /* filled length */
-        void **vs;              /* values */
+    uint sz;                /* allocated size */
+    uint len;               /* filled length */
+    void **vs;              /* values */
 } v_array;
 
 v_array *v_array_init(uint sz);

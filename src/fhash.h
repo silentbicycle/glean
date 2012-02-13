@@ -2,7 +2,7 @@
 #define FHASH_H
 
 typedef struct fname {
-        char *name;
+    char *name;
 } fname;
 
 uint fname_hash(void *v);

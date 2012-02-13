@@ -17,12 +17,12 @@ typedef struct tlink {
 } tlink;
 
 typedef struct table {
-        int sz;
-        int ms;              /* max size */
-        short mcl;           /* max chain length */
-        uint (*hash)(void *);
-        int (*cmp)(void *, void *);
-        tlink **b;            /* buckets */
+    int sz;
+    int ms;              /* max size */
+    short mcl;           /* max chain length */
+    uint (*hash)(void *);
+    int (*cmp)(void *, void *);
+    tlink **b;            /* buckets */
 } table;
 
 table *table_init(int sz_factor, uint (*hash)(void *), int (*cmp)(void *, void *));
