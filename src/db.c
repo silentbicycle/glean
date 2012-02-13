@@ -30,6 +30,8 @@
  *    when building, tokens.db.new, files.db.new, timestamp.new
  *  */
 
+typedef ulong (pack_fun)(context *c, dbdata *d, tlink *t);
+
 #define HB HASH_BYTES
 
 static dbdata *init_dbdata(int fdb_fd, int tdb_fd) {
@@ -333,7 +335,7 @@ static void update_max_bufsize(int fd, int offset, ulong sz) {
 }
 
 static void write_table_data(context *c, dbdata *db, int fd, table *t,
-    char *header, ulong (*pack_fun)(context *, dbdata *, tlink *)) {
+                             char *header, pack_fun *pack) {
     int i;
     /* buffer for offsets to buckets */
     uint bk_buf_sz = t->sz * 4;
@@ -379,7 +381,7 @@ static void write_table_data(context *c, dbdata *db, int fd, table *t,
     for (i=0; i<t->sz; i++) {
         if (DB_DEBUG) fprintf(stderr, "-- bucket #%d\n", i);
         db->o = 0;
-        len = pack_fun(c, db, t->b[i]);
+        len = pack(c, db, t->b[i]);
         if (0) dumphex(stderr, db->dbuf, len);
         write(fd, db->dbuf, len);
         if (DB_DEBUG) fprintf(stderr, "len (inc. header) is %d\n", len);

@@ -61,10 +61,11 @@ void h_array_uniq(h_array *a) {
     hash_t *curhs = a->hs, *nhs = alloc(a->sz * sizeof(hash_t), 'H');
     for (i=0; i<a->len; i++) {
         cur = a->hs[i];
-        if (i > 0 && last == cur)
+        if (i > 0 && last == cur) {
             dup++;
-        else
+        } else {
             nhs[i - dup] = cur;
+        }
         assert(last <= cur);
         last = cur;
     }
@@ -93,7 +94,7 @@ h_array *h_array_union(h_array *a, h_array *b) {
             } else if (ha < hb) {
                 h_array_append(z, ha);
                 ia++;
-            } else {        /* ha > hb */
+            } else /* ha > hb */ {
                 h_array_append(z, hb);
                 ib++;
             }
@@ -128,14 +129,10 @@ h_array *h_array_intersection(h_array *a, h_array *b) {
                 ia++; ib++;
             } else if (ha < hb) {
                 ia++;
-            } else {        /* ha > hb */
+            } else /* ha > hb */ {
                 ib++;
             }
-            if (ia >= lena) {
-                break;
-            } else if (ib >= lenb) {
-                break;
-            }
+            if (ia >= lena || ib >= lenb) break;
         }
     }
     assert(z);
@@ -221,15 +218,15 @@ uint v_array_length(v_array *a) { return a->len; }
 
 void *v_array_get(v_array *a, uint i) { assert(a); return a->vs[i]; }
 
-void v_array_sort(v_array *a, int (*cmp)(const void *, const void *)) {
+void v_array_sort(v_array *a, v_array_cmp *cmp) {
     qsort(a->vs, a->len, sizeof(void *), cmp);
 }
 
-void v_array_free(v_array *a, void (*free_val)(void *)) {
+void v_array_free(v_array *a, v_array_free_cb *cb) {
     uint i;
     assert(a->len <= a->sz);
-    if (free_val) {
-        for (i=0; i<a->len; i++) free_val(a->vs[i]);
+    if (cb) {
+        for (i=0; i<a->len; i++) cb(a->vs[i]);
     }
     free(a->vs);
     free(a);

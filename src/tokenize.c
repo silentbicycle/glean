@@ -35,6 +35,8 @@
 #define BUF_SZ 64 * 1024
 #define DEBUG_IMB (DEBUG || 0)
 
+typedef int (scan_fun)(table *wt, int ct, int *inword, int case_sensitive);
+
 static char buf[BUF_SZ];
 
 /* Based on the first read, is the file mostly textual?
@@ -81,7 +83,7 @@ static int scanner(table *wt, int ct, int *inword, int case_sensitive) {
 
 /* Loop over the file, reading a chunk at a time, saving every known word. */
 static int readloop(int fd, table *wt, int case_sensitive,
-    int (*scan_fun)(table *, int, int *, int)) {
+                    scan_fun *scan) {
     int last=0, inword=0;
     size_t ct=0, read_sz, read_offset;
     int diff;
@@ -91,7 +93,7 @@ static int readloop(int fd, table *wt, int case_sensitive,
     if (is_mostly_binary(ct, buf)) return 1;
     
     for (;;) {
-        last = scan_fun(wt, ct, &inword, case_sensitive);
+        last = scan(wt, ct, &inword, case_sensitive);
         
         read_sz = BUF_SZ; read_offset = 0;
         

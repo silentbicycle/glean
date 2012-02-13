@@ -40,8 +40,7 @@ static void *basic_alloc(size_t sz) {
     return p;
 }
 
-table *table_init(int sz_factor, uint (*hash)(void *),
-    int (*cmp)(void *, void *)) {
+table *table_init(int sz_factor, table_hash *hash, table_cmp *cmp) {
     int i, sz;
     table *t = NULL;
     tlink **b;
@@ -180,26 +179,26 @@ int table_set(table *t, void *v) {
     return status;
 }
 
-/* Apply f(*v) to every element in each bucket chain. */
-void table_apply(table *t, void (*f)(void *val)) {
+/* Apply cb(*v) to every element in each bucket chain. */
+void table_apply(table *t, table_apply_cb *cb) {
     int i;
     tlink *cur;
-    assert(t); assert(f);
+    assert(t); assert(cb);
     for (i=0; i<t->sz; i++) {
         for (cur = t->b[i]; cur != NULL; cur=cur->next) {
-            f(cur->v);
+            cb(cur->v);
         }
     }
 }
 
-void table_free(table *t, void (*free_val)(void *val)) {
+void table_free(table *t, table_free_cb *cb) {
     int i;
     tlink *cur, *n;
     assert(t);
     for (i=0; i<t->sz; i++) {
         cur = t->b[i];
         while (cur) {
-            if (free_val) free_val(cur->v);
+            if (cb) cb(cur->v);
             n = cur->next;
             FREE(cur);
             cur = n;

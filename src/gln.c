@@ -36,6 +36,8 @@
  */
 #define BATCH_SIZE 100
 
+typedef void read_bucket_fun(dbinfo *db, ulong o);
+
 static void usage() {
     puts("glean, by Scott Vokes\n"
         "usage: gln [-h] [-vgnNsDH] [-d db_path] QUERY\n"
@@ -300,7 +302,7 @@ static void dump_token_bucket(dbinfo *db, ulong o) {
 
 /* Dump the filename and token databases to stdout, for debugging. */
 static void dump_db(dbinfo *dbi, char *db, ll_offset *db_head,
-    void (*read_bucket)(dbinfo *db, ulong)) {
+                    read_bucket_fun *read_bucket) {
     int t_ct = 0;                      /* table count */
     ulong o, buckets, i, head; /* table head */
     ll_offset *cur;

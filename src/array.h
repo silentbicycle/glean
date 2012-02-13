@@ -28,11 +28,18 @@ typedef struct v_array {
     void **vs;              /* values */
 } v_array;
 
+/* Value comparison function - should return <0 if a is less
+ * than b, >0 if a is > b, and 0 if a == b. */
+typedef int (v_array_cmp)(const void *a, const void *b);
+
+/* Array value free callback: free the value v. */
+typedef void (v_array_free_cb)(void *v);
+
 v_array *v_array_init(uint sz);
 void v_array_append(v_array *a, void *v);
 void *v_array_get(v_array *a, uint i);
 uint v_array_length(v_array *v);
-void v_array_sort(v_array *a, int (*cmp)(const void *, const void *));
-void v_array_free(v_array *a, void (*free_val)(void *));
+void v_array_sort(v_array *a, v_array_cmp *cmp);
+void v_array_free(v_array *a, v_array_free_cb *cb);
 
 #endif
