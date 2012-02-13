@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <unistd.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <err.h>
 #include <errno.h>

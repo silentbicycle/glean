@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdint.h>
 #include <assert.h>
 #include <math.h>
 #include <ctype.h>

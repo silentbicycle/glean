@@ -23,14 +23,12 @@
  * but it's cheap, so use it. */
 #define SKIP_COMPRESS 0
 
-/* Should we use u_int16_t or u_int32_t for hashes? */
-#define FOUR_BYTE_HASH 1
-
-#if FOUR_BYTE_HASH
+/* Numeric type for content hashes. */
 typedef u_int32_t hash_t;
-#else
-typedef u_int16_t hash_t;
-#endif
+
+/* Other numeric types. */
+typedef uint32_t uint;
+typedef unsigned long ulong;
 
 #define HASH_BYTES sizeof(hash_t)
 
@@ -57,11 +55,6 @@ typedef u_int16_t hash_t;
 
 /* Just die if we ever use more than this. */
 #define MAX_MEMORY (/* 1 GB */ 1024 * 1024 * 1024)
-
-#if defined(__APPLE__)
-typedef unsigned int uint;
-typedef unsigned long ulong;
-#endif
 
 #include "alloc.h"
 

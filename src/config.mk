@@ -23,6 +23,6 @@ CHECK_LIB_PATH=	${PREFIX}lib/
 # Add debugging symbols.
 DEBUG +=	-g
 
-COPTS+=		-O2 ${DEBUG}
+COPTS+=		-O2 ${DEBUG} -std=c99
 COPTS+=		-Wall -pedantic
 MANPATH1=	${MANPATH}/man1
