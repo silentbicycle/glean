@@ -8,7 +8,7 @@
 #include "glean.h"
 
 /* Estimate time remaining based on avg. rate so far, e.g. "1h 20m 14s". */
-void print_eta(FILE *f, long sec, long done, long total) {
+void fprintf_eta(FILE *f, long sec, long done, long total) {
     struct timeval tv;
     float rate;
     uint rem, h, m, s;
