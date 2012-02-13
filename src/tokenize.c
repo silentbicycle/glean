@@ -28,7 +28,7 @@
 
 #include "glean.h"
 #include "array.h"
-#include "hash.h"
+#include "table.h"
 #include "whash.h"
 #include "tokenize.h"
 

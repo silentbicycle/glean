@@ -4,10 +4,10 @@ include config.mk
 ########################################################################
 
 PROGS= 		gln_tokens gln_index gln_filter gln
-GLN_TOKENS_O=	alloc.o tokenize.o hash.o whash.o array.o
-GLN_INDEX_O=	alloc.o hash.o whash.o db.o eta.o fhash.o \
+GLN_TOKENS_O=	alloc.o tokenize.o table.o whash.o array.o
+GLN_INDEX_O=	alloc.o table.o whash.o db.o eta.o fhash.o \
 		dumphex.o nextline.o stopword.o array.o
-GLN_O=		alloc.o whash.o hash.o db.o dumphex.o nextline.o array.o
+GLN_O=		alloc.o whash.o table.o db.o dumphex.o nextline.o array.o
 GLN_FILTER_O=	alloc.o array.o nextline.o
 
 all: ${PROGS}
@@ -52,11 +52,11 @@ gln_tests: tests/tests.c
 
 array.c: array.h
 db.c: db.h gln_index.h whash.h
-fhash.c: hash.h fhash.h 
-gln.c:  hash.h whash.h gln.h
+fhash.c: table.h fhash.h 
+gln.c:  table.h whash.h gln.h
 gln_index.c: gln_index.h
 gln_filter.c: alloc.h nextline.h array.h
-hash.c: hash.h
-stopword.c: stopword.h hash.h whash.h gln_index.h
+table.c: table.h
+stopword.c: stopword.h table.h whash.h gln_index.h
 tokenize.c: tokenize.h whash.h
-whash.c: tokenize.h whash.h hash.h
+whash.c: tokenize.h whash.h table.h

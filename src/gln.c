@@ -15,7 +15,7 @@
 #include <zlib.h>
 
 #include "glean.h"
-#include "hash.h"
+#include "table.h"
 #include "fhash.h"
 #include "whash.h"
 #include "gln_index.h"
@@ -613,7 +613,7 @@ static void run_pipeline(dbinfo *db, int file_offset, int file_ct) {
                 co += fo; fp = 1;
             }
             assert(db->grepnames >= 0 && db->grepnames <= 2);
-            gnstr = (gnum > 0 ? "" : grepnames_opt[db->grepnames]);
+            gnstr = (gnum > 0 ? "" : (char *) grepnames_opt[db->grepnames]);
             
             snprintf(cmd + co, ARG_MAX, "%sgrep %s%s",
                 gnum > 0 ? "|" : "",
@@ -743,7 +743,7 @@ static MODE handle_args(dbinfo *db, int *argc, char **argv[]) {
         case 'H':       /* hash input tokens */
             mode = MODE_HASH;
             break;
-        case 'v':
+        case 'v':       /* verbose */
             db->verbose++;
             break;
         case 'd':       /* set db directory */

@@ -1,5 +1,5 @@
-#ifndef HASH_H
-#define HASH_H
+#ifndef TABLE_H
+#define TABLE_H
 
 /* Grow when any chain gets this long; average will be much smaller. */
 #define DEF_GROW_LEN 50

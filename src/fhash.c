@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "glean.h"
-#include "hash.h"
+#include "table.h"
 #include "whash.h"
 #include "fhash.h"
 

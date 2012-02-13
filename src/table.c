@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "glean.h"
-#include "hash.h"
+#include "table.h"
 
 /* Chaining, resizable hash table for a set of unique values.
  * Adding a duplicated value is an unchecked error. */
