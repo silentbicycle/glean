@@ -1,12 +1,14 @@
+########################################################################
+# You may need to change some options in config.mk. 
 include config.mk
+########################################################################
 
-PROGS= gln_tokens gln_index gln_filter gln
+PROGS= 		gln_tokens gln_index gln_filter gln
 GLN_TOKENS_O=	alloc.o tokenize.o hash.o whash.o array.o
 GLN_INDEX_O=	alloc.o hash.o whash.o db.o eta.o fhash.o \
 		dumphex.o nextline.o stopword.o array.o
-GLN_O=	alloc.o whash.o hash.o db.o dumphex.o nextline.o array.o
+GLN_O=		alloc.o whash.o hash.o db.o dumphex.o nextline.o array.o
 GLN_FILTER_O=	alloc.o array.o nextline.o
-COPTS+= -Wall -pedantic
 
 all: ${PROGS}
 
