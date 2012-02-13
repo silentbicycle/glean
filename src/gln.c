@@ -723,19 +723,25 @@ static void lookup_query(dbinfo *db) {
  * Main *
  ********/
 
-static char handle_args(dbinfo *db, int *argc, char **argv[]) {
+typedef enum MODE {
+    MODE_GLEAN,
+    MODE_DUMP,
+    MODE_HASH,
+} MODE;
+
+static MODE handle_args(dbinfo *db, int *argc, char **argv[]) {
     int fl;
-    char mode = 'g';
+    MODE mode = MODE_GLEAN;
     while ((fl = getopt(*argc, *argv, "hDHvd:nNgst")) != -1) {
         switch (fl) {
         case 'h':       /* help */
             usage();
             break;
         case 'D':       /* dump db */
-            mode = 'D';
+            mode = MODE_DUMP;
             break;
         case 'H':       /* hash input tokens */
-            mode = 'H';
+            mode = MODE_HASH;
             break;
         case 'v':
             db->verbose++;
@@ -775,12 +781,12 @@ static char handle_args(dbinfo *db, int *argc, char **argv[]) {
 int main(int argc, char *argv[]) {
     char buf[MAX_WORD_SZ];
     dbinfo *db;
-    char mode = 'g';
+    MODE mode = MODE_GLEAN;
     
     db = init_dbinfo();
     mode = handle_args(db, &argc, &argv);
     
-    if (mode == 'H') {
+    if (mode == MODE_HASH) {
         free_dbinfo(db);
         return hash_loop(buf);
     }
@@ -790,10 +796,10 @@ int main(int argc, char *argv[]) {
     read_settings(db);
     check_db_headers(db);
     
-    if (mode == 'D') {        /* dump */
+    if (mode == MODE_DUMP) {
         dump_db(db, db->fdb, db->fdb_head, dump_fname_bucket);
         dump_db(db, db->tdb, db->tdb_head, dump_token_bucket);
-    } else if (mode == 'g'){  /* glean db lookup, default */
+    } else if (mode == MODE_GLEAN){  /* default */
         lookup_query(db);
     }
     free_dbinfo(db);
