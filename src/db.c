@@ -215,7 +215,7 @@ static ulong pack_fname_bucket(context *c, dbdata* db, tlink *tl) {
         
         co = db->o;
         buf_int32(db->buf, co, lo);   /* prev->this */
-        buf_int32(db->buf, NULL, co); /* set to NULL (for now) */
+        buf_int32(db->buf, 0, co);    /* set to 0 (for now) */
         db->o += 4;
         
         fhash = hash_word(name);
@@ -284,7 +284,7 @@ static ulong pack_token_bucket(context *c, dbdata* db, tlink *tl) {
         co = db->o;
         buf_int32(db->buf, co, lo);  /* prev->this */
         db->o += 4;
-        buf_int32(db->buf, NULL, co); /* set to NULL (for now) */
+        buf_int32(db->buf, 0, co); /* set to 0 (for now) */
         
         buf_hash(db->buf, hash, db->o);
         db->o += HB;
