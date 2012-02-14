@@ -16,10 +16,15 @@ void h_array_append(h_array *a, hash_t v);
 hash_t h_array_get(h_array *a, uint i);
 uint h_array_length(h_array *a);
 void h_array_sort(h_array *a);
+
+/* Remove duplicates from an array (which must be sorted). */
 void h_array_uniq(h_array *a);
+
+/* Get the union/intersection/complement of two sorted arrays. */
 h_array *h_array_union(h_array *a, h_array *b);
 h_array *h_array_intersection(h_array *a, h_array *b);
 h_array *h_array_complement(h_array *a, h_array *b);
+
 void h_array_free(h_array *a);
 
 typedef struct v_array {

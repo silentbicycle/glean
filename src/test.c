@@ -5,7 +5,7 @@
 
 extern SUITE(array_suite);
 
-GREATEST_MAIN_DEFS()
+GREATEST_MAIN_DEFS();
 
 int main(int argc, char **argv) {
     GREATEST_MAIN_BEGIN();
