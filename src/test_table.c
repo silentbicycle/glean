@@ -99,7 +99,7 @@ TEST add_words_find_dupes() {
 
 void print_cb(void *v) {
     char *s = (char *) v;
-    if (greatest_info.verbose) printf("got word: %s\n", s);
+    if (GREATEST_IS_VERBOSE()) printf("got word: %s\n", s);
 }
 
 TEST print_words_if_verbose() {
