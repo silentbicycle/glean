@@ -11,7 +11,7 @@ GLN_FILTER_O=
 GLN_INDEX_O=	eta.o fhash.o stopword.o
 GLN_TOKENS_O=	tokenize.o
 
-SUITES=		test_array.o
+SUITES=		test_array.o test_eta.o
 TEST_O=		${COMMON_O} ${GLN_INDEX_O} ${GLN_FILTER_O} ${GLN_O} ${SUITES}
 
 
