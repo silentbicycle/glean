@@ -72,14 +72,11 @@ TEST add_words_find_dupes() {
         char *w = words[i];
         ASSERT(w);
         void *cur = table_get(t, w);
-        if (cur == NULL) {
-            ASSERT(!table_known(t, w));
-        } else {
+        if (table_known(t, w)) {
             duplicates[i] = 1;
-            ASSERT(table_known(t, w));
+        } else {
+            if (table_set(t, (void *) w) == TABLE_SET_FAIL) FAIL();
         }
-
-        if (table_set(t, (void *) w) == TABLE_SET_FAIL) FAIL();
     }
 
     for (int i=0; i<word_count; i++) {

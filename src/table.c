@@ -8,15 +8,17 @@
 #include "glean.h"
 #include "table.h"
 
-/* Chaining, resizable hash table for a set of unique values.
- * Adding a duplicated value is an unchecked error. */
-
-/* table_remove NYI, not used. Append only. */
+/* Externally-chaining, resizable hash table for a set of unique keys.
+ * I'm not using a more general-purpose hash table because only storing
+ * the keys (no associated value) leads to a substantial memory savings.
+ *
+ * Chaining is used because once the whole data set is loaded, each
+ * bucket is flattened and individually compressed.
+ * 
+ * Adding a duplicated key is an unchecked error. */
 
 /* Largest primes preceeding increasing powers of 2.
- * Duplicate value -> at max. Only add primes > 2^16
- * when hashes are larger than 2 bytes, having more
- * buckets than possible hashes is counterproductive. */
+ * Duplicate value -> at max. */
 static uint primes[] = { 3, 7, 13, 31, 61, 127, 251, 509, 1021, 2039,
                          4093, 8191, 16381, 32749, 65521,
                          131071, 262139, 524287, 1048573, 2097143, 4194301,

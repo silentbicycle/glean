@@ -1,7 +1,9 @@
 #ifndef TABLE_H
 #define TABLE_H
 
-/* Grow when any chain gets this long; average will be much smaller. */
+/* Grow when any chain gets this long; the average chain
+ * will be much smaller. A longer chain is slower, but will
+ * lead to a database that compresses slightly better. */
 #define DEF_GROW_LEN 50
 
 /* Flags */
@@ -50,8 +52,11 @@ void table_set_max_chain_length(table *t, int cl);
 /* Set the max bucket size for the table. */
 void table_set_max_size(table *t, int ms);
 
+/* Get the canonical version of the key, or NULL if unknown. */
 void *table_get(table *t, void *v);
 
+/* Store the key, return an int with bits set according to TABLE_* flags.
+ * Returns TABLE_SET_FAIL (0) on error. */
 int table_set(table *t, void *v);
 
 /* Is a given key known? */
