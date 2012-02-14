@@ -3,12 +3,20 @@
 include config.mk
 ########################################################################
 
-PROGS= 		gln_tokens gln_index gln_filter gln
-GLN_TOKENS_O=	alloc.o tokenize.o table.o whash.o array.o
-GLN_INDEX_O=	alloc.o table.o whash.o db.o eta.o fhash.o \
-		dumphex.o nextline.o stopword.o array.o
-GLN_O=		alloc.o whash.o table.o db.o dumphex.o nextline.o array.o
-GLN_FILTER_O=	alloc.o array.o nextline.o
+PROGS= 		gln gln_filter gln_index gln_tokens test_gln
+
+COMMON_O=	alloc.o array.o db.o dumphex.o nextline.o table.o whash.o
+GLN_O=		
+GLN_FILTER_O=	
+GLN_INDEX_O=	eta.o fhash.o stopword.o
+GLN_TOKENS_O=	tokenize.o
+
+SUITES=		test_array.o
+TEST_O=		${COMMON_O} ${GLN_INDEX_O} ${GLN_FILTER_O} ${GLN_O} ${SUITES}
+
+
+LIBS=		-lm -lz
+LDFLAGS+=	${LIBS}
 
 all: ${PROGS}
 
@@ -21,17 +29,23 @@ clean:
 TAGS:   *.c *.h
 	etags *.[ch]
 
-gln_tokens: gln_tokens.c ${GLN_TOKENS_O}
-	${CC} -o $@ gln_tokens.c ${GLN_TOKENS_O} -lm ${COPTS}
+gln: gln.c ${COMMON_O} ${GLN_O}
+	${CC} -o $@ gln.c ${COMMON_O} ${GLN_O} ${COPTS} ${LDFLAGS}
 
-gln_index: gln_index.c ${GLN_INDEX_O}
-	${CC} -o $@ gln_index.c ${GLN_INDEX_O} ${COPTS} -lz -lm ${PROFILE}
+gln_filter: gln_filter.c ${COMMON_O} ${GLN_FILTER_O}
+	${CC} -o $@ gln_filter.c ${COMMON_O} ${GLN_FILTER_O} \
+	${COPTS} ${LDFLAGS} ${PROFILE}
 
-gln_filter: gln_filter.c ${GLN_FILTER_O}
-	${CC} -o $@ gln_filter.c ${GLN_FILTER_O} ${COPTS} ${PROFILE}
+gln_index: gln_index.c ${COMMON_O} ${GLN_INDEX_O}
+	${CC} -o $@ gln_index.c ${COMMON_O} ${GLN_INDEX_O} ${PROFILE} \
+	${COPTS} ${LDFLAGS}
 
-gln: gln.c ${GLN_O}
-	${CC} -o $@ gln.c ${GLN_O} ${COPTS} -lz
+gln_tokens: gln_tokens.c ${COMMON_O} ${GLN_TOKENS_O}
+	${CC} -o $@ gln_tokens.c ${COMMON_O} ${GLN_TOKENS_O} \
+	${COPTS} ${LDFLAGS}
+
+test_gln: test.c ${TEST_O}
+	${CC} -o $@ test.c ${TEST_O} ${COPTS} ${LDFLAGS}
 
 #TODO: actually install man pages.
 install:
