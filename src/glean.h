@@ -24,7 +24,7 @@
 #define SKIP_COMPRESS 0
 
 /* Numeric type for content hashes. */
-typedef u_int32_t hash_t;
+typedef uint32_t hash_t;
 
 /* Other numeric types. */
 typedef uint32_t uint;
