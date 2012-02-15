@@ -114,7 +114,7 @@ static int fsize(int fd) {
 
 static void init_files(context *c) {
     FILE *finder;
-    int tstamp, gln_path_len = strlen(c->wkdir) + strlen("/.gln/");
+    int tstamp, gln_path_len = strlen(c->wkdir) + strlen("/.gln/") + 1;
     char *gln_path = alloc(gln_path_len, 'p');
     char *find_cmd = NULL;
     char *cwd = NULL;
