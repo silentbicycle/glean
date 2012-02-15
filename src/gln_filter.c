@@ -86,7 +86,7 @@ static void add_pattern(re_group *g, char *pat, char *action) {
         err(1, "regcomp");
     }
     len = strlen(action) + 1;
-    caction = alloc(len, 'a');
+    caction = alloc(len + 1, 'a');
     strncpy(caction, action, len);
     caction[len] = '\0';
     v_array_append(g->res, re);
