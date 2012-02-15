@@ -15,6 +15,8 @@ h_array *h_array_new(uint sz);
 void h_array_append(h_array *a, hash_t v);
 hash_t h_array_get(h_array *a, uint i);
 uint h_array_length(h_array *a);
+
+/* Sort the hash array in place. */
 void h_array_sort(h_array *a);
 
 /* Remove duplicates from an array (which must be sorted). */
@@ -27,6 +29,9 @@ h_array *h_array_complement(h_array *a, h_array *b);
 
 void h_array_free(h_array *a);
 
+/* Dynamically resized void pointer array (vector).
+ * When appending, the allocated memory for VS will be
+ * doubled if LEN == SZ. */
 typedef struct v_array {
     uint sz;                /* allocated size */
     uint len;               /* filled length */
@@ -44,7 +49,9 @@ v_array *v_array_new(uint sz);
 void v_array_append(v_array *a, void *v);
 void *v_array_get(v_array *a, uint i);
 uint v_array_length(v_array *v);
-void v_array_sort(v_array *a, v_array_cmp *cmp);
 void v_array_free(v_array *a, v_array_free_cb *cb);
+
+/* Sort the array in place, using the provided comparison callback. */
+void v_array_sort(v_array *a, v_array_cmp *cmp);
 
 #endif

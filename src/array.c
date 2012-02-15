@@ -74,58 +74,60 @@ void h_array_uniq(h_array *a) {
     a->hs = nhs;
 }
 
+/* Get the union of two sorted arrays. */
 h_array *h_array_union(h_array *a, h_array *b) {
-    h_array *z;
+    h_array *res;
     uint ia = 0, ib = 0;
     uint lena = h_array_length(a), lenb = h_array_length(b);
     hash_t ha, hb;
     if (lena == 0) {
-        z = b;
+        res = b;
     } else if (lenb == 0) {
-        z = a;
+        res = a;
     } else {                
-        z = h_array_new(2);
+        res = h_array_new(2);
         while (1) {
             ha = h_array_get(a, ia);
             hb = h_array_get(b, ib);
             if (ha == hb) {
-                h_array_append(z, ha);
+                h_array_append(res, ha);
                 ia++; ib++;
             } else if (ha < hb) {
-                h_array_append(z, ha);
+                h_array_append(res, ha);
                 ia++;
             } else /* ha > hb */ {
-                h_array_append(z, hb);
+                h_array_append(res, hb);
                 ib++;
             }
             if (ia >= lena) {
                 while (ib < lenb)
-                    h_array_append(z, h_array_get(b, ib++));
+                    h_array_append(res, h_array_get(b, ib++));
                 break;
             } else if (ib >= lenb) {
                 while (ia < lena)
-                    h_array_append(z, h_array_get(a, ia++));
+                    h_array_append(res, h_array_get(a, ia++));
                 break;
             }
         }
     }
-    assert(z);
-    assert(h_array_length(z) >= lena && h_array_length(z) >= lenb);
-    return z;
+    assert(res);
+    assert(h_array_length(res) >= lena && h_array_length(res) >= lenb);
+    return res;
 }
 
+/* Get the intersection of two sorted arrays. */
 h_array *h_array_intersection(h_array *a, h_array *b) {
-    h_array *z;
+    h_array *res;
     uint ia = 0, ib = 0;
     uint lena = h_array_length(a), lenb = h_array_length(b);
     hash_t ha, hb;
-    z = h_array_new(2);
+    res = h_array_new(2);
     if (lena > 0 && lenb > 0) {
         while (1) {
             ha = h_array_get(a, ia);
             hb = h_array_get(b, ib);
             if (ha == hb) {
-                h_array_append(z, ha);
+                h_array_append(res, ha);
                 ia++; ib++;
             } else if (ha < hb) {
                 ia++;
@@ -135,29 +137,31 @@ h_array *h_array_intersection(h_array *a, h_array *b) {
             if (ia >= lena || ib >= lenb) break;
         }
     }
-    assert(z);
-    assert(h_array_length(z) <= lena && h_array_length(z) <= lenb);
-    return z;
+    assert(res);
+    assert(h_array_length(res) <= lena && h_array_length(res) <= lenb);
+    return res;
 }
 
+/* Get an array of all values in A that are not in B.
+ * Assumes both arrays are sorted. */
 h_array *h_array_complement(h_array *a, h_array *b) {
-    h_array *z;
+    h_array *res;
     uint ia = 0, ib = 0;
     uint lena = h_array_length(a), lenb = h_array_length(b);
     hash_t ha, hb;
     if (lenb == 0) {
-        z = a;
+        res = a;
     } else if (lena == 0) {
-        z = h_array_new(2);
+        res = h_array_new(2);
     } else {
-        z = h_array_new(2);
+        res = h_array_new(2);
         while (1) {
             ha = h_array_get(a, ia);
             hb = h_array_get(b, ib);
             if (ha == hb) {
                 ia++; ib++;
             } else if (ha < hb) {
-                h_array_append(z, ha);
+                h_array_append(res, ha);
                 ia++;
             } else {        /* ha > hb */
                 ib++;
@@ -166,14 +170,14 @@ h_array *h_array_complement(h_array *a, h_array *b) {
                 break;
             } else if (ib >= lenb) {
                 while (ia < lena)
-                    h_array_append(z, h_array_get(a, ia++));
+                    h_array_append(res, h_array_get(a, ia++));
                 break;
             }
         }
     }
-    assert(z);
-    assert(h_array_length(z) <= lena);
-    return z;
+    assert(res);
+    assert(h_array_length(res) <= lena);
+    return res;
 }
 
 void h_array_free(h_array *a) {
@@ -218,6 +222,7 @@ uint v_array_length(v_array *a) { return a->len; }
 
 void *v_array_get(v_array *a, uint i) { assert(a); return a->vs[i]; }
 
+/* Sort the array in place, using the provided comparison callback. */
 void v_array_sort(v_array *a, v_array_cmp *cmp) {
     qsort(a->vs, a->len, sizeof(void *), cmp);
 }
