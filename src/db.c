@@ -17,7 +17,6 @@
 #include "gln_index.h"
 #include "db.h"
 #include "dumphex.h"
-#include "pack.h"
 
 /*
  * $WRKDIR/.gln/
@@ -148,13 +147,15 @@ static ulong compress_buffer(dbdata *db, int pad) {
     while (db->dbufsz < srclen) grow_dbuf(db, db->dbufsz);
     
     if (DB_DEBUG) fprintf(stderr, "compressing: %d in dbuf of sz %lu\n", srclen, destlen);
-    res = compress(db->dbuf + pad, &destlen, db->buf, srclen);
+    res = compress((unsigned char *) db->dbuf + pad, &destlen,
+        (unsigned char *) db->buf, srclen);
     if (DB_DEBUG) fprintf(stderr, "res:%d, destlen %lu\n", res, destlen);
     while (res == Z_BUF_ERROR) {
         if (DB_DEBUG) fprintf(stderr, "z_buf_error, resizing\n");
         grow_dbuf(db, db->dbufsz); /* double size */
         destlen = db->dbufsz;
-        res = compress(db->dbuf + pad, &destlen, db->buf, srclen);
+        res = compress((unsigned char *) db->dbuf + pad, &destlen,
+            (unsigned char *)db->buf, srclen);
         if (DB_DEBUG) fprintf(stderr, " (r) res:%d, destlen %lu\n", res, destlen);
     }
     

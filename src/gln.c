@@ -218,7 +218,8 @@ static void free_dbinfo(dbinfo *db) {
 
 static ulong uncompress_buffer(char *dfl_buf, ulong buflen, char *srcbuf, ulong srclen) {
     ulong destlen = buflen;
-    int res = uncompress(dfl_buf, &destlen, srcbuf, srclen);
+    int res = uncompress((unsigned char *) dfl_buf, &destlen,
+        (unsigned char *) srcbuf, srclen);
     assert(res == Z_OK);
     return destlen;
 }

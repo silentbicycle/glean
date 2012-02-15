@@ -24,5 +24,5 @@ CHECK_LIB_PATH=	${PREFIX}lib/
 DEBUG +=	-g
 
 COPTS+=		-O2 ${DEBUG} -std=c99
-COPTS+=		-Wall -pedantic
+COPTS+=		-Wall -pedantic -Werror
 MANPATH1=	${MANPATH}/man1
