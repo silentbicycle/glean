@@ -487,7 +487,7 @@ static void dump_grep(grep *head) {
 
 static void filter_results(dbinfo *db) {
     h_array *res = NULL, *nres = NULL;
-    grep *g;
+    grep *g = NULL;
     assert(db->g);
     for (g = db->g; g != NULL; g=g->g) {
         if (res) {
@@ -787,6 +787,8 @@ int main(int argc, char *argv[]) {
     db = init_dbinfo();
     mode = handle_args(db, &argc, &argv);
     
+    if (argc < 1) usage();
+
     if (mode == MODE_HASH) {
         free_dbinfo(db);
         return hash_loop(buf);
