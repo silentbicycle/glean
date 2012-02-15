@@ -325,7 +325,7 @@ static void dump_db(dbinfo *dbi, char *db, ll_offset *db_head,
 
 /* Just print word hashes (for testing DBs). */
 static int hash_loop(char *buf) {
-    uint hash;
+    hash_t hash;
     for (;;) {
         if (fgets(buf, MAX_WORD_SZ, stdin) != NULL) {
             buf[strcspn(buf, "\n")] = '\0';
@@ -510,7 +510,7 @@ static void filter_results(dbinfo *db) {
     db->results = res;
 }
 
-static void append_matching_fnames(dbinfo *db, uint fhash, uint o) {
+static void append_matching_fnames(dbinfo *db, hash_t fhash, uint o) {
     int i, xo = DB_X_CT;
     ulong len = rd_int32(db->fdb, o + xo); /* compressed byte count */
     ulong zo = o + 4 + xo;

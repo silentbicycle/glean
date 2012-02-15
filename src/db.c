@@ -193,7 +193,7 @@ static ulong pack_fname_bucket(context *c, dbdata* db, s_link *tl) {
     fname *fn;
     s_link *cur;
     char *name;
-    uint fhash;
+    hash_t fhash;
     ulong co = 0, lo = 0, len;  /* current + last offsets */
     int i, link=0, xo=DB_X_CT;
     
@@ -205,7 +205,7 @@ static ulong pack_fname_bucket(context *c, dbdata* db, s_link *tl) {
      */
     assert(db->o == 0);
     for (cur = tl; cur != NULL; cur = cur->next) {
-        fn = (fname *)cur->v;
+        fn = (fname *)cur->key;
         name = fn->name;
         len = strlen(name) + 1;
         if (DB_DEBUG && 0)
@@ -254,7 +254,7 @@ static ulong pack_token_bucket(context *c, dbdata* db, s_link *tl) {
     ulong co = 0, lo = 0, len;  /* current + last word offsets */
     ulong lho = 0, hashct;           /* last hash offset */
     int i, link = 0, xo=DB_X_CT;
-    uint hash;
+    hash_t hash;
     h_array *a;
     
 #define DEBUG_WD 0
@@ -270,7 +270,7 @@ static ulong pack_token_bucket(context *c, dbdata* db, s_link *tl) {
         if (DB_DEBUG && 0)
             fprintf(stderr, "Packing link %d starting at %lu\n", link++, db->o);
         
-        w = (word *)cur->v;
+        w = (word *) cur->key;
         fprintf(c->tlog, "%s\n", w->name); /* append words to log */
         hash = hash_word(w->name);
         a = w->a;

@@ -14,22 +14,22 @@
 
 /* Linked list, branching off table. */
 typedef struct s_link {
-    void *v;
+    void *key;
     struct s_link *next;
 } s_link;
 
 /* Hash function - should take a void * and return an unsigned int hash. */
-typedef hash_t (set_hash)(void *v);
+typedef hash_t (set_hash)(void *key);
                          
 /* Value comparison function - should return <0 if a is less
  * than b, >0 if a is > b, and 0 if a == b. */
 typedef int (set_cmp)(void *a, void *b);
 
 /* Apply callback - apply the function to the value v. */
-typedef void set_apply_cb(void *v);
+typedef void set_apply_cb(void *key);
 
 /* Table value free callback - free the value v. */
-typedef void (set_free_cb)(void *v);
+typedef void (set_free_cb)(void *key);
 
 /* Hash-table set.
  * 
@@ -50,14 +50,14 @@ typedef struct set {
 set *set_init(int sz_factor, set_hash *hash, set_cmp *cmp);
 
 /* Get the canonical version of the key, or NULL if unknown. */
-void *set_get(set *t, void *v);
+void *set_get(set *t, void *key);
 
 /* Store the key, return an int with bits set according to TABLE_* flags.
  * Returns TABLE_SET_FAIL (0) on error. */
-int set_store(set *t, void *v);
+int set_store(set *t, void *key);
 
 /* Is a given key known? */
-int set_known(set *t, void *v);
+int set_known(set *t, void *key);
 
 /* Apply the callback to every key. */
 void set_apply(set *t, set_apply_cb *cb);

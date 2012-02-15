@@ -24,7 +24,7 @@ hash_t hash_word(char *w) {
     return h;
 }
 
-static uint word_hash(void *v) {
+static hash_t word_hash(void *v) {
     return hash_word(((word *)v)->name);
 }
 

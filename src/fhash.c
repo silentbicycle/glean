@@ -10,7 +10,7 @@
 #include "whash.h"
 #include "fhash.h"
 
-uint fname_hash(void *v) {
+hash_t fname_hash(void *v) {
     return hash_word(((fname *)v)->name);
 }
 
