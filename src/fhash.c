@@ -23,8 +23,8 @@ static int fname_cmp(void *a, void *b) {
     return strcmp(na, nb);
 }
 
-table *init_fname_table(int sz_factor) {
-    return table_init(sz_factor, fname_hash, fname_cmp);
+set *init_fname_set(int sz_factor) {
+    return set_init(sz_factor, fname_hash, fname_cmp);
 }
 
 fname *new_fname(char *n, size_t len) {
@@ -41,11 +41,11 @@ void free_fname(void *f) {
     free(fn);
 }
 
-fname *add_fname(table *wt, fname *f) {
+fname *add_fname(set *s, fname *f) {
     int res;
     if (DEBUG) fprintf(stderr,
         "Adding filename %s (%ld)\n", f->name, strlen(f->name));
-    res = table_set(wt, f);
-    if (res == TABLE_SET_FAIL) err(1, "table_set failure");
+    res = set_store(s, f);
+    if (res == TABLE_SET_FAIL) err(1, "set_store failure");
     return f;
 }

@@ -35,7 +35,7 @@
 #define BUF_SZ 64 * 1024
 #define DEBUG_IMB (DEBUG || 0)
 
-typedef int (scan_fun)(table *wt, int ct, int *inword, int case_sensitive);
+typedef int (scan_fun)(set *wt, int ct, int *inword, int case_sensitive);
 
 static char buf[BUF_SZ];
 
@@ -56,7 +56,7 @@ static int is_mostly_binary(size_t ct, char *buf) {
  * 
  * This (and whash.c's hash_word) will need to be changed for i18n.
  * It should probably be made a config option. */
-static int scanner(table *wt, int ct, int *inword, int case_sensitive) {
+static int scanner(set *wt, int ct, int *inword, int case_sensitive) {
     int i, j, last = 0;
     char c;                   /* current byte */
     int alf, diff;            /* isalpha(c) flag; diff */
@@ -82,7 +82,7 @@ static int scanner(table *wt, int ct, int *inword, int case_sensitive) {
 }
 
 /* Loop over the file, reading a chunk at a time, saving every known word. */
-static int readloop(int fd, table *wt, int case_sensitive,
+static int readloop(int fd, set *wt, int case_sensitive,
                     scan_fun *scan) {
     int last=0, inword=0;
     size_t ct=0, read_sz, read_offset;
@@ -120,7 +120,7 @@ static int readloop(int fd, table *wt, int case_sensitive,
     return 0;
 }
 
-void tokenize_file(const char *fn, table *wt, int case_sensitive) {
+void tokenize_file(const char *fn, set *wt, int case_sensitive) {
     int fd = open(fn, O_RDONLY, 0);
     int skipped, res;
     

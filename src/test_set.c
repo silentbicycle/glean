@@ -64,17 +64,17 @@ static int word_count = sizeof(words) / sizeof(words[0]) - 1;
 
 /* 0 files to go -> "0s " */
 TEST add_words_find_dupes() {
-    table *t = table_init(2, dumb_hash, cmp);
+    set *s = set_init(2, dumb_hash, cmp);
     int duplicates[word_count];
     bzero(duplicates, word_count * sizeof(int));
 
     for (int i=0; i<word_count; i++) {
         char *w = words[i];
         ASSERT(w);
-        if (table_known(t, w)) {
+        if (set_known(s, w)) {
             duplicates[i] = 1;
         } else {
-            if (table_set(t, (void *) w) == TABLE_SET_FAIL) FAIL();
+            if (set_store(s, (void *) w) == TABLE_SET_FAIL) FAIL();
         }
     }
 
@@ -89,7 +89,7 @@ TEST add_words_find_dupes() {
     ASSERT_EQm("words[19] (\"onion\") is a dup", 1, duplicates[19]);
     ASSERT_EQm("the last word (\"fennel\") is a dup", 1, duplicates[word_count - 1]);
 
-    table_free(t, NULL);
+    set_free(s, NULL);
     PASS();
 }
 
@@ -99,18 +99,18 @@ void print_cb(void *v) {
 }
 
 TEST print_words_if_verbose() {
-    table *t = table_init(2, dumb_hash, cmp);
+    set *s = set_init(2, dumb_hash, cmp);
     int duplicates[word_count];
     bzero(duplicates, word_count * sizeof(int));
 
     for (int i=0; i<word_count; i++) {
         char *w = words[i];
-        if (table_set(t, (void *) w) == TABLE_SET_FAIL) FAIL();
+        if (set_store(s, (void *) w) == TABLE_SET_FAIL) FAIL();
     }
 
-    table_apply(t, print_cb);
+    set_apply(s, print_cb);
 
-    table_free(t, NULL);
+    set_free(s, NULL);
     PASS();
 }
 

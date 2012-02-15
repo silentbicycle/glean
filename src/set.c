@@ -40,41 +40,41 @@ static void *basic_alloc(size_t sz) {
     return p;
 }
 
-table *table_init(int sz_factor, table_hash *hash, table_cmp *cmp) {
+set *set_init(int sz_factor, set_hash *hash, set_cmp *cmp) {
     int i, sz;
-    table *t = NULL;
-    tlink **b;
+    set *s = NULL;
+    s_link **b;
     assert(sz_factor >= 0 && sz_factor <= (sizeof(primes) / sizeof(int)));
     sz = primes[sz_factor];
     b = ALLOC(sz*sizeof(void *));
-    t = ALLOC(sizeof(table));
+    s = ALLOC(sizeof(set));
     assert(hash); assert(cmp);
-    t->sz=sz; t->hash = hash; t->cmp = cmp; t->b = b;
-    t->ms = primes[(sizeof(primes)/sizeof(primes[0]))-2];
-    t->mcl = DEF_GROW_LEN;
-    for (i=0; i<sz; i++) t->b[i] = NULL;
-    return t;
+    s->sz=sz; s->hash = hash; s->cmp = cmp; s->b = b;
+    s->ms = primes[(sizeof(primes)/sizeof(primes[0]))-2];
+    s->mcl = DEF_GROW_LEN;
+    for (i=0; i<sz; i++) s->b[i] = NULL;
+    return s;
 }
 
-/* Get a value associated w/ a key, moving its tlink to the
+/* Get a value associated w/ a key, moving its s_link to the
  * front of its chain. Return NULL if not found. */
-void *table_get(table *t, void *v) {
+void *set_get(set *s, void *v) {
     uint h, b;
-    tlink *cur = NULL, *prev = NULL, *head;
-    assert(v); assert(t);
-    h = t->hash(v);
-    b = h % t->sz;          /* bucket id */
-    head = t->b[b];
+    s_link *cur = NULL, *prev = NULL, *head;
+    assert(v); assert(s);
+    h = s->hash(v);
+    b = h % s->sz;          /* bucket id */
+    head = s->b[b];
     /* fprintf(stderr, "Hashed to bucket %u\n", b); */
     for (cur = head; cur != NULL; cur = cur->next) {
         assert(v); assert(cur->v);
-        if (t->cmp(v, cur->v) == 0) break;
+        if (s->cmp(v, cur->v) == 0) break;
         prev = cur;
     }
     if (cur != NULL) {
         if (prev != NULL) {    /* move to front */
             prev->next = cur->next;
-            t->b[b] = cur;
+            s->b[b] = cur;
             cur->next = head;
         }
         return cur->v;
@@ -82,14 +82,12 @@ void *table_get(table *t, void *v) {
     return NULL;
 }
 
-void table_set_max_size(table *t, int ms) { t->ms = ms; }
-void table_set_max_chain_length(table *t, int cl) { t->mcl = cl; }
-int table_known(table *t, void *v) { return table_get(t, v) != NULL; }
+int set_known(set *s, void *v) { return set_get(s, v) != NULL; }
 
 /* Return next larger size, or same size if maxed out. */
-static int next_sz(int sz) {
+static ulong next_sz(ulong sz) {
     int i;
-    int nsz = sz;
+    ulong nsz = sz;
     for (i=0; primes[i] != 0; i++) {
         if (primes[i] > sz) { nsz = primes[i]; break; }
     }
@@ -97,36 +95,36 @@ static int next_sz(int sz) {
 }
 
 /* While resizing, move a value to its new bucket. */
-static void table_move(table *t, tlink *n) {
+static void set_move(set *s, s_link *n) {
     uint h, b;
-    tlink *cur;
-    assert(n); assert(t);
-    h = t->hash(n->v);
-    b = h % t->sz;
-    cur = t->b[b];
-    t->b[b] = n;
+    s_link *cur;
+    assert(n); assert(s);
+    h = s->hash(n->v);
+    b = h % s->sz;
+    cur = s->b[b];
+    s->b[b] = n;
     n->next = cur;          /* front */
 }
 
 /* Switch to a larger bucket array and rehash contents. */
-static int table_resize(table *t, int sz) {
+static int set_resize(set *s, ulong sz) {
     int i, old_sz;
-    tlink **nb;
-    tlink *cur, **oldb = (tlink**)t->b, *next;
-    if (DEBUG) fprintf(stderr, "\n\n-- Resizing from %d to %d\n\n", t->sz, sz);
-    old_sz = t->sz;
+    s_link **nb;
+    s_link *cur, **oldb = (s_link**)s->b, *next;
+    if (DEBUG) fprintf(stderr, "\n\n-- Resizing from %lu to %lu\n\n", s->sz, sz);
+    old_sz = s->sz;
     if (sz == old_sz) { return TABLE_FULL; }
     nb = ALLOC(sz*sizeof(void *));
     for (i=0; i<sz; i++) nb[i] = NULL;
     
-    t->b = nb;
-    t->sz = sz;
+    s->b = nb;
+    s->sz = sz;
     for (i=0; i<old_sz; i++) {
         cur = oldb[i];
         while (cur != NULL) {
             next = cur->next;
             cur->next = NULL;
-            table_move(t, cur);
+            set_move(s, cur);
             cur = next;
         }
     }
@@ -134,69 +132,69 @@ static int table_resize(table *t, int sz) {
     return TABLE_RESIZED;
 }
 
-static int table_grow(table *t) {
-    int gsz = next_sz(t->sz);
-    if (gsz > t->ms || gsz == t->sz) return TABLE_FULL;
-    return table_resize(t, gsz);
+static int set_grow(set *s) {
+    ulong gsz = next_sz(s->sz);
+    if (gsz > s->ms || gsz == s->sz) return TABLE_FULL;
+    return set_resize(s, gsz);
 }
 
-int table_set(table *t, void *v) {
+int set_store(set *s, void *v) {
     uint h, b, len=0;
-    tlink *n, *cur, *tail = NULL;
+    s_link *n, *cur, *tail = NULL;
     int status = 0;
     
-    assert(v); assert(t);
-    h = t->hash(v);
-    b = h % t->sz;
-    n = ALLOC(sizeof(tlink));
+    assert(v); assert(s);
+    h = s->hash(v);
+    b = h % s->sz;
+    n = ALLOC(sizeof(s_link));
     n->next = NULL;
     n->v = v;
     
-    /* If the table is already at the max size, just put it at the
+    /* If the hash table is already at the max size, just put it at the
      * head, don't bother walking the whole chain. */
-    if (t->sz == t->ms) {
-        cur = t->b[b];
-        t->b[b] = n;
+    if (s->sz == s->ms) {
+        cur = s->b[b];
+        s->b[b] = n;
         n->next = cur;
         return TABLE_SET | TABLE_FULL;
     }
     
     /* Otherwise, note the length, to see if it's time to resize. */
-    for (cur = t->b[b]; cur != NULL; cur=cur->next) {
+    for (cur = s->b[b]; cur != NULL; cur=cur->next) {
         len++;
         tail = cur;
     }
     if (tail) {
         tail->next = n;
     } else {
-        t->b[b] = n;
+        s->b[b] = n;
     }
     status |= TABLE_SET;
-    if (len > t->mcl) {
-        status |= table_grow(t);
-        if (DEBUG) table_stats(t, 0);
+    if (len > s->mcl) {
+        status |= set_grow(s);
+        if (DEBUG) set_stats(s, 0);
     }
     return status;
 }
 
 /* Apply cb(*v) to every element in each bucket chain. */
-void table_apply(table *t, table_apply_cb *cb) {
+void set_apply(set *s, set_apply_cb *cb) {
     int i;
-    tlink *cur;
-    assert(t); assert(cb);
-    for (i=0; i<t->sz; i++) {
-        for (cur = t->b[i]; cur != NULL; cur=cur->next) {
+    s_link *cur;
+    assert(s); assert(cb);
+    for (i=0; i<s->sz; i++) {
+        for (cur = s->b[i]; cur != NULL; cur=cur->next) {
             cb(cur->v);
         }
     }
 }
 
-void table_free(table *t, table_free_cb *cb) {
+void set_free(set *s, set_free_cb *cb) {
     int i;
-    tlink *cur, *n;
-    assert(t);
-    for (i=0; i<t->sz; i++) {
-        cur = t->b[i];
+    s_link *cur, *n;
+    assert(s);
+    for (i=0; i<s->sz; i++) {
+        cur = s->b[i];
         while (cur) {
             if (cb) cb(cur->v);
             n = cur->next;
@@ -204,24 +202,24 @@ void table_free(table *t, table_free_cb *cb) {
             cur = n;
         }
     }
-    FREE(t->b);
-    FREE(t);
+    FREE(s->b);
+    FREE(s);
 }
 
 /* Dump stats about how evenly the table is filled. */
-void table_stats(table *t, int verbose) {
-    long i, len=0, tot=0, minlen=t->mcl, maxlen=0;
-    tlink *cur;
-    fprintf(stderr, "table: %d buckets, max chain len %d, max size %d\n",
-        t->sz, t->mcl, t->ms);
-    for (i=0; i<t->sz; i++) {
+void set_stats(set *s, int verbose) {
+    long i, len=0, tot=0, minlen=s->mcl, maxlen=0;
+    s_link *cur;
+    fprintf(stderr, "set: %lu buckets, max chain len %d, max size %lu\n",
+        s->sz, s->mcl, s->ms);
+    for (i=0; i<s->sz; i++) {
         len = 0;
-        for (cur = t->b[i]; cur != NULL; cur=cur->next) len++;
+        for (cur = s->b[i]; cur != NULL; cur=cur->next) len++;
         if (verbose) fprintf(stderr, "bucket %ld: %ld\n", i, len);
         tot += len;
         if (len < minlen) minlen = len;
         else if (len > maxlen) maxlen = len;
     }
     fprintf(stderr, "----\ttotal: %ld\tavg: %.2f\tmin: %ld\tmax: %ld\n",
-        tot, tot / (float)t->sz, minlen, maxlen);
+        tot, tot / (float)s->sz, minlen, maxlen);
 }

@@ -14,11 +14,11 @@
 
 #define BUF_SZ 4096
 #define TIMEOUT 60              /* just die after 1 minute idle */
-#define FLUSH_COUNT 100         /* clear table & shrink every N files */
+#define FLUSH_COUNT 100         /* clear set & shrink every N files */
 
 /* Read in filenames from stdin and tokenize them. If given " DONE", quit. */
 int main(int argc, char *argv[]) {
-    table *wt = init_word_table(0);
+    set *wt = init_word_set(0);
     char buf[BUF_SZ];
     int pid = getpid();
     int case_sensitive = (argc == 2 && strcmp(argv[1], "-c") == 0);
@@ -43,8 +43,8 @@ int main(int argc, char *argv[]) {
             fflush(stdout);
             
             if (++files >= FLUSH_COUNT) {
-                table_free(wt, free_word);
-                wt = init_word_table(0);
+                set_free(wt, free_word);
+                wt = init_word_set(0);
                 if (0) fprintf(stderr, "flush: %d, %d\n", getpid(), files);
                 files = 0;
             }
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
             if (DEBUG) fprintf(stderr, "-- Finished filename %s\n", buf);
         } else break;
     }
-    if (DEBUG_HASH) table_stats(wt, 0);
-    table_free(wt, free_word);
+    if (DEBUG_HASH) set_stats(wt, 0);
+    set_free(wt, free_word);
     return 0;
 }

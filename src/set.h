@@ -13,62 +13,59 @@
 #define TABLE_FULL      0x04
 
 /* Linked list, branching off table. */
-typedef struct tlink {
+typedef struct s_link {
     void *v;
-    struct tlink *next;
-} tlink;
+    struct s_link *next;
+} s_link;
 
 /* Hash function - should take a void * and return an unsigned int hash. */
-typedef hash_t (table_hash)(void *v);
+typedef hash_t (set_hash)(void *v);
                          
 /* Value comparison function - should return <0 if a is less
  * than b, >0 if a is > b, and 0 if a == b. */
-typedef int (table_cmp)(void *a, void *b);
+typedef int (set_cmp)(void *a, void *b);
 
 /* Apply callback - apply the function to the value v. */
-typedef void table_apply_cb(void *v);
+typedef void set_apply_cb(void *v);
 
 /* Table value free callback - free the value v. */
-typedef void (table_free_cb)(void *v);
+typedef void (set_free_cb)(void *v);
 
-/* Hash-table set. */
-typedef struct table {
-    int sz;              /* current size (bucket count) */
-    int ms;              /* max size (bucket count) */
-    short mcl;           /* max chain length */
-    table_hash *hash;    /* hash function */
-    table_cmp *cmp;      /* comparison function */
-    tlink **b;           /* buckets */
-} table;
+/* Hash-table set.
+ * 
+ * The internals are exported because db.c's write_set_data currently
+ * stores the databases by compressing every bucket as a whole, and
+ * thus depends on the internal structure. */
+typedef struct set {
+    ulong sz;                   /* current size (bucket count) */
+    ulong ms;                   /* max size (bucket count) */
+    short mcl;                  /* max chain length */
+    set_hash *hash;             /* hash function */
+    set_cmp *cmp;               /* comparison function */
+    s_link **b;                 /* buckets */
+} set;
 
 /* Initialize a hash table set, expecting to store at
  * least 2^sz_factor values. Returns NULL on error. */
-table *table_init(int sz_factor, table_hash *hash, table_cmp *cmp);
-
-/* Set the max length allowed for an individual bucket chain before
- * the hash table should grow and rehash. */
-void table_set_max_chain_length(table *t, int cl);
-
-/* Set the max bucket size for the table. */
-void table_set_max_size(table *t, int ms);
+set *set_init(int sz_factor, set_hash *hash, set_cmp *cmp);
 
 /* Get the canonical version of the key, or NULL if unknown. */
-void *table_get(table *t, void *v);
+void *set_get(set *t, void *v);
 
 /* Store the key, return an int with bits set according to TABLE_* flags.
  * Returns TABLE_SET_FAIL (0) on error. */
-int table_set(table *t, void *v);
+int set_store(set *t, void *v);
 
 /* Is a given key known? */
-int table_known(table *t, void *v);
+int set_known(set *t, void *v);
 
 /* Apply the callback to every key. */
-void table_apply(table *t, table_apply_cb *cb);
+void set_apply(set *t, set_apply_cb *cb);
 
-/* Free the table, calling CB (if set) on every key. */
-void table_free(table *t, table_free_cb *cb);
+/* Free the set, calling CB on every key (if non-NULL). */
+void set_free(set *t, set_free_cb *cb);
 
-/* Print debugging info about the hash table. */
-void table_stats(table *t, int verbose);
+/* Print tuning statistics about the set's internals. */
+void set_stats(set *t, int verbose);
 
 #endif

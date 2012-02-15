@@ -9,13 +9,13 @@ typedef struct word {
 } word;
 
 hash_t hash_word(char *w);
-table *init_word_table(int sz);
+set *init_word_set(int sz);
 word *new_word(char *w, size_t len, uint data);
 void free_word(void *w);
-word *add_word(table *wt, char *w, size_t len);
-word *get_word(table *wt, char *wname);
-int known_word(table *wt, char *wname);
-void print_and_zero_words(table *wt);
+word *add_word(set *wt, char *w, size_t len);
+word *get_word(set *wt, char *wname);
+int known_word(set *wt, char *wname);
+void print_and_zero_words(set *wt);
 char *default_gln_dir();
 
 #endif

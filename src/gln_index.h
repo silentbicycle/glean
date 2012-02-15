@@ -30,8 +30,8 @@ typedef struct context {
     int filter_pid;         /* pid for same */
     int max_tid;            /* max known token ID */
     int max_w_socket;       /* max worker socket file ID */
-    table *ft;              /* filename table */
-    table *wt;              /* known words table */
+    set *ft;              /* filename set */
+    set *wt;              /* known words set */
     struct v_array *fnames; /* filename array */
     uint fni;               /* current filename index */
     

@@ -33,8 +33,8 @@ static int word_cmp(void *a, void *b) {
     return strcmp(na, nb);
 }
 
-table *init_word_table(int sz_factor) {
-    return table_init(sz_factor, word_hash, word_cmp);
+set *init_word_set(int sz_factor) {
+    return set_init(sz_factor, word_hash, word_cmp);
 }
 
 word *new_word(char *w, size_t len, uint data) {
@@ -62,7 +62,7 @@ void free_word(void *v) {
 }
 
 /* Add an occurance of a word to the known words, allocating it if necessary. */
-word *add_word(table *wt, char *w, size_t len) {
+word *add_word(set *s, char *w, size_t len) {
     char wbuf[MAX_WORD_SZ];
     word *nw;
     int res;
@@ -70,26 +70,26 @@ word *add_word(table *wt, char *w, size_t len) {
     assert(len > 0);
     strncpy(wbuf, w, len);
     wbuf[len] = '\0';
-    nw = get_word(wt, wbuf);
+    nw = get_word(s, wbuf);
     if (nw == NULL) {             /* nonexistent */
         nw = new_word(wbuf, len, 1);
         if (DEBUG)
             fprintf(stderr, "-- Adding word %s (%lu) -> %s\n", wbuf, len, nw->name);
-        res = table_set(wt, nw);
+        res = set_store(s, nw);
         if (res == TABLE_SET_FAIL)
-            err(1, "table_set failure");
+            err(1, "set_store failure");
     } else if (nw->i == 0) {     /* present but cleared */
         nw->i = 1;
     } else {
-        nw->i++;             /* increment occurrance count */
+        nw->i++;                /* increment occurrance count */
     }
     return nw;
 }
 
-word *get_word(table *wt, char *wname) {
+word *get_word(set *s, char *wname) {
     word w, *res;
     w.name = wname;
-    res = (word*)table_get(wt, &w);
+    res = (word*)set_get(s, &w);
     if (res != NULL) {
         if (DEBUG) fprintf(stderr, "Expected: %s\tGOT: %p, %p, %s\n",
             wname, (void *)res, (void *)res->name, res->name);
@@ -97,8 +97,8 @@ word *get_word(table *wt, char *wname) {
     return res;
 }
 
-int known_word(table *wt, char *wname) {
-    word *w = get_word(wt, wname);
+int known_word(set *s, char *wname) {
+    word *w = get_word(s, wname);
     return w != NULL && w->i > 0;
 }
 
@@ -109,7 +109,7 @@ static void print_and_zero(void *v) {
 }
 
 /* Print known words & location flags, clearing the flags along the way. */
-void print_and_zero_words(table *wt) { table_apply(wt, print_and_zero); }
+void print_and_zero_words(set *s) { set_apply(s, print_and_zero); }
 
 char *default_gln_dir() { /* ~ */
     char *hm = getenv("HOME");

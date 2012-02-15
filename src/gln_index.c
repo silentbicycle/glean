@@ -114,8 +114,8 @@ static context *init_context() {
     c->wkdir = default_gln_dir();
     c->root = NULL;
     
-    c->wt = init_word_table(0);
-    c->ft = init_fname_table(0);
+    c->wt = init_word_set(0);
+    c->ft = init_fname_set(0);
     c->verbose = c->show_progress = c->use_stop_words = 0;
     c->case_sensitive = 0;
     c->index_dotfiles = 0;
@@ -246,8 +246,8 @@ static int assign_file(context *c) {
 static void free_context(context *c) {
     int i;
     worker *w;
-    table_free(c->wt, free_word);
-    table_free(c->ft, free_fname);
+    set_free(c->wt, free_word);
+    set_free(c->ft, free_fname);
     for (i=0; i<c->w_ct; i++) {
         w = &(c->ws[i]);
         free(w->buf);

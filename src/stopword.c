@@ -24,7 +24,7 @@
  */
 
 /* Array of pointers to all words, used for calculating stop words.
- * Should be a closure, maybe add a void* udata arg to table_apply. */
+ * Should be a closure, maybe add a void* udata arg to set_apply. */
 static uint w_ct;
 static word **word_array = NULL;
 
@@ -71,7 +71,7 @@ void identify_stop_words(context *c) {
     word_array = alloc(sizeof(word *) * c->tct, 'W');
     
     w_ct = 0;
-    table_apply(c->wt, add_word_to_array);
+    set_apply(c->wt, add_word_to_array);
     if (w_ct == 0) return;
     qsort(word_array, c->tct, sizeof(word *), cmp_word_ct);
     

@@ -29,7 +29,7 @@
  *    when building, tokens.db.new, files.db.new, timestamp.new
  *  */
 
-typedef ulong (pack_fun)(context *c, dbdata *d, tlink *t);
+typedef ulong (pack_fun)(context *c, dbdata *d, s_link *t);
 
 #define HB HASH_BYTES
 
@@ -189,9 +189,9 @@ void init_db_files(context *c) {
 
 static char *gln_file_header = "glnF " GLN_VERSION_STRING " ";
 
-static ulong pack_fname_bucket(context *c, dbdata* db, tlink *tl) {
+static ulong pack_fname_bucket(context *c, dbdata* db, s_link *tl) {
     fname *fn;
-    tlink *cur;
+    s_link *cur;
     char *name;
     uint fhash;
     ulong co = 0, lo = 0, len;  /* current + last offsets */
@@ -248,9 +248,9 @@ static ulong pack_fname_bucket(context *c, dbdata* db, tlink *tl) {
 
 static char *gln_token_header = "glnT " GLN_VERSION_STRING " ";
 
-static ulong pack_token_bucket(context *c, dbdata* db, tlink *tl) {
+static ulong pack_token_bucket(context *c, dbdata* db, s_link *tl) {
     word *w;
-    tlink *cur;
+    s_link *cur;
     ulong co = 0, lo = 0, len;  /* current + last word offsets */
     ulong lho = 0, hashct;           /* last hash offset */
     int i, link = 0, xo=DB_X_CT;
@@ -333,23 +333,23 @@ static void update_max_bufsize(int fd, int offset, ulong sz) {
     write(fd, buf, 4);
 }
 
-static void write_table_data(context *c, dbdata *db, int fd, table *t,
+static void write_set_data(context *c, dbdata *db, int fd, set *s,
                              char *header, pack_fun *pack) {
     int i;
     /* buffer for offsets to buckets */
-    uint bk_buf_sz = t->sz * 4;
+    uint bk_buf_sz = s->sz * 4;
     uint bk_buf_offset, len = strlen(header);
     char *bkbuf = alloc(bk_buf_sz, 'b');
     int xo;
     xo=DB_X_CT;
     
     /* Table format:
-     * gln[F or T] [VERSION] [max buffer size/4] [byte offset of first table]
+     * gln[F or T] [VERSION] [max buffer size/4] [byte offset of first set]
      *
      * Table format:
-     * [absolute byte position of next table (or NULL)]
-     * [table size/4]
-     * [table of absolute offsets to each bucket's data/(bucket count * 4)]
+     * [absolute byte position of next set (or NULL)]
+     * [set size/4]
+     * [set of absolute offsets to each bucket's data/(bucket count * 4)]
      */
     /* FIXME: just truncate db for now; append later. */
     lseek(fd, 0, SEEK_SET);
@@ -358,15 +358,15 @@ static void write_table_data(context *c, dbdata *db, int fd, table *t,
     write_int32(fd, 0);             /* max buffer size will go here later */
     db->fo = len + 4;
     
-    write_int32(fd, db->fo + 4);    /* offset of first table */
+    write_int32(fd, db->fo + 4);    /* offset of first set */
     db->fo += 4;
     if (DB_DEBUG) fprintf(stderr, "Writing int32 for offset: %ld (0x%04lx)\n",
         db->fo + 4 + xo, db->fo + 4 + xo);
     
-    write_int32(fd, 0);             /* next table offset -> NULL, for now */
+    write_int32(fd, 0);             /* next set offset -> NULL, for now */
     db->fo += 4;
     
-    write_int32(fd, bk_buf_sz);     /* table size */
+    write_int32(fd, bk_buf_sz);     /* set size */
     db->fo += 4;
     if (DB_DEBUG) fprintf(stderr, "bk_buf_sz is %d (0x%04x)\n", bk_buf_sz, bk_buf_sz);
     
@@ -375,12 +375,12 @@ static void write_table_data(context *c, dbdata *db, int fd, table *t,
     bk_buf_offset = db->fo;         /* will write offsets here later */
     db->fo += bk_buf_sz;
     
-    /* for each bucket, all its info into a buffer, deflate it,
+    /* For each bucket, add all its info into a buffer, deflate it,
      * append to the database file, and set the offset to it. */
-    for (i=0; i<t->sz; i++) {
+    for (i=0; i<s->sz; i++) {
         if (DB_DEBUG) fprintf(stderr, "-- bucket #%d\n", i);
         db->o = 0;
-        len = pack(c, db, t->b[i]);
+        len = pack(c, db, s->b[i]);
         if (0) dumphex(stderr, db->dbuf, len);
         write(fd, db->dbuf, len);
         if (DB_DEBUG) fprintf(stderr, "len (inc. header) is %d\n", len);
@@ -419,14 +419,14 @@ int write_db(context *c) {
     /* TODO try opening existing file, else write it */
     /* write_file_header(); */
     if (DB_DEBUG) {
-        fprintf(stderr, "File table:\n");
-        table_stats(c->ft, 0);
-        fprintf(stderr, "Token table:\n");
-        table_stats(c->wt, 0);
+        fprintf(stderr, "File set:\n");
+        set_stats(c->ft, 0);
+        fprintf(stderr, "Token set:\n");
+        set_stats(c->wt, 0);
     }
     
-    write_table_data(c, db, db->ffd, c->ft, gln_file_header, pack_fname_bucket);
-    write_table_data(c, db, db->tfd, c->wt, gln_token_header, pack_token_bucket);
+    write_set_data(c, db, db->ffd, c->ft, gln_file_header, pack_fname_bucket);
+    write_set_data(c, db, db->tfd, c->wt, gln_token_header, pack_token_bucket);
     
 #if PROFILE_COMPRESSION
     printf("Totals: IN: %lu\tOUT: %lu\t%.2f\n",

@@ -6,9 +6,9 @@ typedef struct fname {
 } fname;
 
 uint fname_hash(void *v);
-table *init_fname_table(int sz_factor);
+set *init_fname_set(int sz_factor);
 fname *new_fname(char *n, size_t len);
 void free_fname(void *w);
-fname *add_fname(table *wt, fname *f);
+fname *add_fname(set *wt, fname *f);
 
 #endif

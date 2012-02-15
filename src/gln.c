@@ -303,8 +303,8 @@ static void dump_token_bucket(dbinfo *db, ulong o) {
 /* Dump the filename and token databases to stdout, for debugging. */
 static void dump_db(dbinfo *dbi, char *db, ll_offset *db_head,
                     read_bucket_fun *read_bucket) {
-    int t_ct = 0;                      /* table count */
-    ulong o, buckets, i, head; /* table head */
+    int t_ct = 0;                      /* set count */
+    ulong o, buckets, i, head; /* set head */
     ll_offset *cur;
     printf("\n-- Dump db -- ");
     for (cur=db_head; cur != NULL; cur=cur->n) {
