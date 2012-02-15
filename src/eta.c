@@ -41,6 +41,6 @@ int eta_tostring(char *buf, int buf_sz, long sec, long done, long total) {
 int eta_fprintf(FILE *f, long sec, long done, long total) {
     char buf[1024];
     if (eta_tostring(buf, 1024, sec, done, total) < 0) return -1;
-    fprintf(f, buf);
+    fprintf(f, "%s", buf);
     return 0;
 }
