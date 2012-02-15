@@ -33,8 +33,9 @@
  *
  * When used with multiple pipelined greps, a smaller batch size means
  * more processes used, but also faster results (due to buffering).
+ * TODO: Make this configurable.
  */
-#define BATCH_SIZE 100
+#define BATCH_SIZE 25
 
 typedef void read_bucket_fun(dbinfo *db, ulong o);
 
@@ -438,7 +439,7 @@ static void format_cmd(dbinfo *db, char *cmd, char *pat, char *tokpath) {
     }
 }
 
-static void get_matching_tokens(dbinfo *db) {
+static void gen_matching_tokens(dbinfo *db) {
     grep *g;
     char *pat, *buf, *tok;
     size_t len;
@@ -475,7 +476,7 @@ static void get_matching_tokens(dbinfo *db) {
     }
 }
 
-static void get_matching_file_hashes(dbinfo *db) {
+static void gen_matching_file_hashes(dbinfo *db) {
     grep *g;
     hash_t hash;
     uint i;
@@ -578,7 +579,7 @@ static char *get_timestamp_fname(dbinfo *db) {
     return tsfile;
 }
 
-static void get_matching_filenames(dbinfo *db) {
+static void gen_matching_filenames(dbinfo *db) {
     uint i;
     db->fnames = v_array_new(2);
     for (i=0; i<h_array_length(db->results); i++)
@@ -711,12 +712,10 @@ static void lookup_query(dbinfo *db) {
     int i, fnct, rem;
     char *fn;
     
-    get_matching_tokens(db);
-    if (db->tokens_only) {
-        
-        return;
-    }
-    get_matching_file_hashes(db);
+    gen_matching_tokens(db);
+    if (db->tokens_only) return;
+
+    gen_matching_file_hashes(db);
     if (db->verbose > 1) dump_grep(db->g);
     
     filter_results(db);
@@ -727,7 +726,9 @@ static void lookup_query(dbinfo *db) {
         }
         puts("");
     }
-    get_matching_filenames(db);
+    gen_matching_filenames(db);
+
+    /* TODO: Could sort filenames by size, date, ... here, istead. */
     v_array_sort(db->fnames, fn_cmp);
     
     if (db->verbose) {
