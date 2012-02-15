@@ -3,28 +3,36 @@
 
 /* Word (token) and its metadata. */
 typedef struct word {
-    char *name;
-    uint i;                 /* token ID or flags */
-    short stop;             /* is it a stop word? */
-    struct h_array *a;      /* array of occurrence hashes */
+    char *name;                 /* internal copy of word string */
+    uint count;                 /* word occurrence count */
+    short stop;                 /* is it a stop word? */
+    struct h_array *a;          /* array of occurrence hashes */
 } word;
 
+/* Hash a zero-terminated string. */
 hash_t word_hash(char *w);
 
-set *word_set_init(int sz);
+/* Create a set<word>, expecting to store at least 2^sz_factor values.
+ * Returns NULL on error. */
+set *word_set_init(int sz_factor);
 
-word *word_new(char *w, size_t len, uint data);
+/* Create a new word from the LEN-byte string at W,
+ * with starting count COUNT. */
+word *word_new(char *w, size_t len, uint count);
 
+/* Free a word. */
 void word_free(void *w);
 
-word *word_add(set *wt, char *w, size_t len);
+/* Add an occurance to the set<word>, allocating if necessary. */
+word *word_add(set *s, char *w, size_t len);
 
-word *word_get(set *wt, char *wname);
+/* Get the interned data for a word. */
+word *word_get(set *s, char *wname);
 
-int word_known(set *wt, char *wname);
+/* Is a word already in the set? */
+int word_known(set *s, char *wname);
 
-void word_print_and_zero(set *wt);
-
-char *default_gln_dir();
+/* Print each (word, count) pair and zero their counts. */
+void word_print_and_zero(set *s);
 
 #endif

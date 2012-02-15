@@ -28,4 +28,7 @@ void db_init_files(context *c);
 /* Write the data set. */
 int db_write(context *c);
 
+/* Get the default DB base path. */
+char *db_default_gln_dir();
+
 #endif

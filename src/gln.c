@@ -50,7 +50,7 @@ static char *op_strs[] = { "", "AND", "OR", "NOT", /*"NEAR",*/ NULL };
 static dbinfo *init_dbinfo() {
     dbinfo *db = alloc(sizeof(dbinfo), 'd');
     memset(db, 0, sizeof(dbinfo));
-    db->gln_dir = default_gln_dir();
+    db->gln_dir = db_default_gln_dir();
     db->grepnames = 1;
     db->compressed = 0;
     db->verbose = db->subtoken = db->tokens_only = 0;;

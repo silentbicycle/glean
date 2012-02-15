@@ -33,11 +33,15 @@ static int cmp_cb(void *a, void *b) {
     return strcmp(na, nb);
 }
 
+/* Create a set<word>, expecting to store at least 2^sz_factor values.
+ * Returns NULL on error. */
 set *word_set_init(int sz_factor) {
     return set_new(sz_factor, hash_cb, cmp_cb);
 }
 
-word *word_new(char *w, size_t len, uint data) {
+/* Create a new word from the LEN-byte string at W,
+ * with starting count COUNT. */
+word *word_new(char *w, size_t len, uint count) {
     word *ws = alloc(sizeof(word), 'w');
     char *nbuf = alloc(len + 1, 'n');
     assert(len > 0);
@@ -47,12 +51,13 @@ word *word_new(char *w, size_t len, uint data) {
     ws->stop = 0;
     ws->a = h_array_new(2);
     assert(ws->a);
-    ws->i = data;
-    if (DEBUG) fprintf(stderr, "Created word %p %s %d\n",
-        (void *) ws, ws->name, ws->i);
+    ws->count = count;
+    if (DEBUG) fprintf(stderr, "Created word %p %s %u\n",
+        (void *) ws, ws->name, ws->count);
     return ws;
 }
 
+/* Free a word. */
 void word_free(void *v) {
     word *w = (word *)v;
     assert(w); assert(w->name);
@@ -78,14 +83,15 @@ word *word_add(set *s, char *w, size_t len) {
         res = set_store(s, nw);
         if (res == TABLE_SET_FAIL)
             err(1, "set_store failure");
-    } else if (nw->i == 0) {     /* present but cleared */
-        nw->i = 1;
+    } else if (nw->count == 0) {    /* present but cleared */
+        nw->count = 1;
     } else {
-        nw->i++;                /* increment occurrance count */
+        nw->count++;                /* increment occurrance count */
     }
     return nw;
 }
 
+/* Get the interned data for a word. */
 word *word_get(set *s, char *wname) {
     word w, *res;
     w.name = wname;
@@ -97,22 +103,18 @@ word *word_get(set *s, char *wname) {
     return res;
 }
 
+/* Is a word already in the set? */
 int word_known(set *s, char *wname) {
     word *w = word_get(s, wname);
-    return w != NULL && w->i > 0;
+    return w != NULL && w->count > 0;
 }
 
+/* Print each (word, count) pair and zero their counts. */
 static void print_and_zero(void *v, void *unused) {
     word *w = (word *)v;
-    if (w->i) printf("%s %d\n", w->name, w->i);
-    w->i = 0;
+    if (w->count > 0) printf("%s %d\n", w->name, w->count);
+    w->count = 0;
 }
 
 /* Print known words & location flags, clearing the flags along the way. */
 void word_print_and_zero(set *s) { set_apply(s, print_and_zero, NULL); }
-
-char *default_gln_dir() { /* ~ */
-    char *hm = getenv("HOME");
-    if (hm == NULL) err(1, "no home?");
-    return hm;
-}

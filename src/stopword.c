@@ -37,7 +37,7 @@ static void word_add_to_array(void *v, void *udata) {
 /* Sort words by occurrence count, most to least. */
 static int cmp_word_ct(const void *a, const void *b) {
     word **wa = (word **)a, **wb = (word **)b;
-    uint ai = (*wa)->i, bi = (*wb)->i;
+    uint ai = (*wa)->count, bi = (*wb)->count;
     return ai < bi ? 1 : ai > bi ? -1 : 0;
 }
 
@@ -50,10 +50,10 @@ static uint find_plateau(word **word_array, uint word_count,
     double chg;
     
     w = word_array[0];
-    lastdiff = diff = last = w->i;
+    lastdiff = diff = last = w->count;
     for (i=0; i<word_count; i++) {
         w = word_array[i];
-        diff = abs(last - w->i);
+        diff = abs(last - w->count);
         chg = lastdiff / (1.0*diff);
         
         if (DEBUG) fprintf(stderr, "%d\tld %d, d %d\tchg=%f\t%d\n",
@@ -64,7 +64,7 @@ static uint find_plateau(word **word_array, uint word_count,
         } else if (flats > 0) {
             flats--;
         }
-        last = w->i;
+        last = w->count;
         lastdiff = diff;
     }
     return stop_at;
@@ -97,8 +97,8 @@ int stopword_identify(set *word_set, ulong token_count,
     for (i=0; i<stop_at; i++) {
         w = ud.word_array[i];
         w->stop = 1;
-        if (verbose) fprintf(stderr, "Setting stopword #%d: %s (%d)\n",
-            i, w->name, w->i);
+        if (verbose) fprintf(stderr, "Setting stopword #%d: '%s' (count %d)\n",
+            i, w->name, w->count);
     }
     return 0;
 }

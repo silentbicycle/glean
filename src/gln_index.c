@@ -111,7 +111,7 @@ static int open_db(char *path, char *file, int update) {
 
 static context *init_context() {
     context *c = alloc(sizeof(context), 'c');
-    c->wkdir = default_gln_dir();
+    c->wkdir = db_default_gln_dir();
     c->root = NULL;
     
     c->word_set = word_set_init(0);
@@ -393,21 +393,22 @@ static void cons_word(context *c, word *w, hash_t hash) {
 /* If word is new, assign token ID and emit "t $tokenid $token\n".
  * Always emit "$tokenid $fileid $data". */
 static void note_instance(context *c, worker *w, char *wbuf,
-    uint data, uint len, hash_t fnhash) {
+                          uint count, uint len, hash_t fnhash) {
     int known = word_known(c->word_set, wbuf);
     word *word = NULL;
     if (known) {
         word = word_get(c->word_set, wbuf);
         assert(strcmp(wbuf, word->name) == 0);
-        word->i += data;
-        c->t_occ_ct += data;
+        word->count += count;
+        c->t_occ_ct += count;
     } else {
         word = word_add(c->word_set, wbuf, len);
         c->t_ct++;
     }        
     /* cons word */
     if (word) cons_word(c, word, fnhash);
-    if (c->verbose > 1) printf("GOT: %s (%d) in %04x, %d\n", wbuf, len, fnhash, data);
+    if (c->verbose > 1) printf("GOT: %s (%d) in %04x, %d\n",
+        wbuf, len, fnhash, count);
 }
 
 static int digits(uint d) {
@@ -422,7 +423,7 @@ static void process_read(context *c, worker *w, int len, int wid) {
     int i, toks=0, last=0;
     char wbuf[MAX_WORD_SZ];
     char *in = w->buf;
-    uint data;
+    uint count;
     uint wlen;      /* current word's length */
     hash_t fnhash = word_hash(w->fname->name);
     if (DEBUG)
@@ -430,11 +431,11 @@ static void process_read(context *c, worker *w, int len, int wid) {
     
     for (i=0; i<len; i++) {
         if (in[i] == '\n') {
-            toks = sscanf(in + last, "%s %u\n", wbuf, &data);
+            toks = sscanf(in + last, "%s %u\n", wbuf, &count);
             if (toks == 2) {
-                wlen = i - last - 1 - digits(data);
+                wlen = i - last - 1 - digits(count);
                 assert(wlen == strlen(wbuf));
-                note_instance(c, w, wbuf, data, wlen, fnhash);
+                note_instance(c, w, wbuf, count, wlen, fnhash);
                 last = i + 1;
             } else if (strncmp(in + last, " SKIP", 5) == 0) {
                 if (c->verbose >= 1) printf(" -- Skipping file %s\n", w->fname->name);

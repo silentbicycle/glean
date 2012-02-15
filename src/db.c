@@ -278,7 +278,7 @@ static ulong pack_token_bucket(context *c, dbdata* db, s_link *tl) {
         a = w->a;
         assert(a);
         if (DEBUG_WD) fprintf(stderr, "Word is %s (%04x): %u occs (%d), ",
-            w->name, hash, w->i, w->stop);
+            w->name, hash, w->count, w->stop);
         
         while (db->bufsz <= db->o + (4 + HB + 2 + a->len*HB)) {
             grow_buf(db, db->bufsz); /* 2*sz */
@@ -306,7 +306,7 @@ static ulong pack_token_bucket(context *c, dbdata* db, s_link *tl) {
             fprintf(c->swlog, "%s\n", w->name); /* add to stop word log */
             if (DEBUG)
                 fprintf(stderr, "Skipping stop word '%s', %u instances\n",
-                    w->name, w->i);
+                    w->name, w->count);
             db->o = co; /* roll back */
         } else {
             buf_int16(db->buf, hashct, lho); /* hash count */
@@ -437,3 +437,10 @@ int db_write(context *c) {
     free_zlib();
     return 0;
 }
+
+char *db_default_gln_dir() {
+    char *hm = getenv("HOME");
+    if (hm == NULL) err(1, "failed to get $HOME");
+    return hm;
+}
+
