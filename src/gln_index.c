@@ -290,7 +290,7 @@ int main(int argc, char *argv[]) {
     init_files(c);
     save_settings(c);
     
-    filter_enqueue_files(c);
+    if (filter_enqueue_files(c) < 0) exit(EXIT_FAILURE);
     if (worker_init_all(c) < 0) exit(EXIT_FAILURE);
     
     fnlen = v_array_length(c->fnames);

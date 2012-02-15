@@ -17,6 +17,8 @@
 #include "gln_index.h"
 #include "nextline.h"
 
+/* Open a gln_filter co-process, saving its pid in PID and
+ * returning its file descriptor. */
 int filter_open_coprocess(int *pid) {
     int res, sv[2];
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == -1) err(1, "socketpair");
@@ -33,7 +35,8 @@ int filter_open_coprocess(int *pid) {
     return sv[0];
 }
 
-int filter_match(int fd, char *fname, int len) {
+/* Should a given file be skipped, according to filtering rules? */
+static int should_skip(int fd, char *fname, int len) {
     char buf[4096];
     int sz;
     strncpy(buf, fname, len + 1);
@@ -50,20 +53,26 @@ int filter_match(int fd, char *fname, int len) {
     return 1;
 }
 
-void filter_enqueue_files(context *c) {
+/* Read input from the gln_filter co-process and
+ * enqueue files to be indexed.
+ * Returns <0 on error. */
+int filter_enqueue_files(context *c) {
     char *buf;
     size_t len;
     fname *fn;
     uint ct=0, sp = (c->verbose || c->show_progress);
-    int matched;
-    if (c->find == NULL) return;
+    int skip = 0;
+    if (c->find == NULL) {
+        fprintf(stderr, "Failed to start 'find' process.\n");
+        return -1;
+    }
     
-    if (sp) fprintf(stderr, "-- enqueueing all files to index\n");
+    if (sp) fprintf(stderr, "-- Enqueueing all files to index...\n");
     
     while ((buf = nextline(c->find, &len)) != NULL) {
-        matched = filter_match(c->filter_fd, buf, len);
+        skip = should_skip(c->filter_fd, buf, len);
         if (buf[len - 1] == '\n') buf[len - 1] = '\0';
-        if (matched) {
+        if (skip) {
             if (c->verbose || DEBUG)
                 fprintf(stderr, "Ignoring: %s\n", buf);
         } else {
@@ -73,7 +82,7 @@ void filter_enqueue_files(context *c) {
                 v_array_length(c->fnames), fn->name);
             ct++;
             if (ct % ENQUEUE_PROGRESS_CT == 0)
-                fprintf(stderr, "%u files enqueued...\n", ct);
+                fprintf(stderr, "%u files enqueued so far...\n", ct);
         }
     }
     
@@ -85,5 +94,6 @@ void filter_enqueue_files(context *c) {
     
     c->tick_max = v_array_length(c->fnames) / 100;
     
-    if (sp) fprintf(stderr, "-- enqueueing done, indexing %u files\n", ct);
+    if (sp) fprintf(stderr, "-- %u files enqueued.\n", ct);
+    return 0;
 }
