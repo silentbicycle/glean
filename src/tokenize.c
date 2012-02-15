@@ -35,7 +35,7 @@
 #define BUF_SZ 64 * 1024
 #define DEBUG_IMB (DEBUG || 0)
 
-typedef int (scan_fun)(set *wt, int ct, int *inword, int case_sensitive);
+typedef int (scan_fun)(set *s, int ct, int *inword, int case_sensitive);
 
 static char buf[BUF_SZ];
 
@@ -56,7 +56,7 @@ static int is_mostly_binary(size_t ct, char *buf) {
  * 
  * This (and whash.c's hash_word) will need to be changed for i18n.
  * It should probably be made a config option. */
-static int scanner(set *wt, int ct, int *inword, int case_sensitive) {
+static int scanner(set *s, int ct, int *inword, int case_sensitive) {
     int i, j, last = 0;
     char c;                   /* current byte */
     int alf, diff;            /* isalpha(c) flag; diff */
@@ -71,7 +71,7 @@ static int scanner(set *wt, int ct, int *inword, int case_sensitive) {
                 if (!case_sensitive)
                     for (j=0; j<diff; j++)
                         buf[last+j] = tolower(buf[last+j]);
-                add_word(wt, buf + last, diff);
+                add_word(s, buf + last, diff);
             }
         } else if (!*inword && alf) { /* start of new token */
             last = i;
@@ -82,7 +82,7 @@ static int scanner(set *wt, int ct, int *inword, int case_sensitive) {
 }
 
 /* Loop over the file, reading a chunk at a time, saving every known word. */
-static int readloop(int fd, set *wt, int case_sensitive,
+static int readloop(int fd, set *s, int case_sensitive,
                     scan_fun *scan) {
     int last=0, inword=0;
     size_t ct=0, read_sz, read_offset;
@@ -93,7 +93,7 @@ static int readloop(int fd, set *wt, int case_sensitive,
     if (is_mostly_binary(ct, buf)) return 1;
     
     for (;;) {
-        last = scan(wt, ct, &inword, case_sensitive);
+        last = scan(s, ct, &inword, case_sensitive);
         
         read_sz = BUF_SZ; read_offset = 0;
         
@@ -116,11 +116,11 @@ static int readloop(int fd, set *wt, int case_sensitive,
     }
     
     if (ct == -1) err(1, "read fail");
-    print_and_zero_words(wt);
+    print_and_zero_words(s);
     return 0;
 }
 
-void tokenize_file(const char *fn, set *wt, int case_sensitive) {
+void tokenize_file(const char *fn, set *s, int case_sensitive) {
     int fd = open(fn, O_RDONLY, 0);
     int skipped, res;
     
@@ -128,7 +128,7 @@ void tokenize_file(const char *fn, set *wt, int case_sensitive) {
         perror(fn);
         printf(" SKIP\n");
     } else {
-        skipped = readloop(fd, wt, case_sensitive, scanner);
+        skipped = readloop(fd, s, case_sensitive, scanner);
         res = close(fd);
         assert(res == 0);
         printf(skipped ? " SKIP\n" : " DONE\n");
