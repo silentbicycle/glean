@@ -173,13 +173,13 @@ int set_store(set *s, void *key) {
 }
 
 /* Apply the callback to every key. */
-void set_apply(set *s, set_apply_cb *cb) {
+void set_apply(set *s, set_apply_cb *cb, void *udata) {
     int i;
     s_link *cur;
     assert(s); assert(cb);
     for (i=0; i<s->sz; i++) {
         for (cur = s->b[i]; cur != NULL; cur=cur->next) {
-            cb(cur->key);
+            cb(cur->key, udata);
         }
     }
 }

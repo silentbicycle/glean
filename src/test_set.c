@@ -93,7 +93,7 @@ TEST add_words_find_dupes() {
     PASS();
 }
 
-void print_cb(void *v) {
+void print_cb(void *v, void *unused) {
     char *s = (char *) v;
     if (GREATEST_IS_VERBOSE()) printf("got word: %s\n", s);
 }
@@ -108,7 +108,7 @@ TEST print_words_if_verbose() {
         if (set_store(s, (void *) w) == TABLE_SET_FAIL) FAIL();
     }
 
-    set_apply(s, print_cb);
+    set_apply(s, print_cb, NULL);
 
     set_free(s, NULL);
     PASS();

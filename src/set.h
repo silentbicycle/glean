@@ -25,8 +25,9 @@ typedef hash_t (set_hash)(void *key);
  * than b, >0 if a is > b, and 0 if a == b. */
 typedef int (set_cmp)(void *a, void *b);
 
-/* Apply callback - apply the function to the value v. */
-typedef void set_apply_cb(void *key);
+/* Apply callback - apply the function to the value v, with the
+ * given closure/userdata UDATA. */
+typedef void set_apply_cb(void *key, void *udata);
 
 /* Table value free callback - free the value v. */
 typedef void (set_free_cb)(void *key);
@@ -60,7 +61,7 @@ int set_store(set *t, void *key);
 int set_known(set *t, void *key);
 
 /* Apply the callback to every key. */
-void set_apply(set *t, set_apply_cb *cb);
+void set_apply(set *t, set_apply_cb *cb, void *udata);
 
 /* Free the set, calling CB on every key (if non-NULL). */
 void set_free(set *t, set_free_cb *cb);

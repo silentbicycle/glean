@@ -102,14 +102,14 @@ int known_word(set *s, char *wname) {
     return w != NULL && w->i > 0;
 }
 
-static void print_and_zero(void *v) {
+static void print_and_zero(void *v, void *unused) {
     word *w = (word *)v;
     if (w->i) printf("%s %d\n", w->name, w->i);
     w->i = 0;
 }
 
 /* Print known words & location flags, clearing the flags along the way. */
-void print_and_zero_words(set *s) { set_apply(s, print_and_zero); }
+void print_and_zero_words(set *s) { set_apply(s, print_and_zero, NULL); }
 
 char *default_gln_dir() { /* ~ */
     char *hm = getenv("HOME");
