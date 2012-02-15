@@ -56,9 +56,6 @@ uninstall:
 	rm -f ${PREFIX}bin/gln_{index,tokens}
 	rm -f ${PREFIX}bin/gln
 
-lint:
-	lint *.c
-
 gln_tests: tests/tests.c
 	${CC} -o $@ tests/tests.c -I${CHECK_INC_PATH} -L${CHECK_LIB_PATH} -lcheck
 
