@@ -1,5 +1,5 @@
-#ifndef OCC_ARRAY_H
-#define OCC_ARRAY_H
+#ifndef ARRAY_H
+#define ARRAY_H
 
 /* Resizable uint -> hash_t array.
  * Separate from v_array since sizeof(hash_t) is much less than
