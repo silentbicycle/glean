@@ -42,30 +42,35 @@ static int cmp_word_ct(const void *a, const void *b) {
 }
 
 /* Step over the sorted word counts and find the index at
- * which the frequency starts to flatten out. */
+ * which the frequency starts to flatten out.
+ *
+ * TODO: Still experimental. */
 static uint find_plateau(word **word_array, uint word_count,
+                         uint token_occurence_count,
                          int flat_ct, double change_factor) {
-    uint i, last, diff, lastdiff=1, flats=0, stop_at=0;
-    word *w;
-    double chg;
+    uint flats=0, stop_at=0;
+    word *w = NULL;
+    double lastperc = 100.0;
     
+    if (DEBUG)
+        fprintf(stderr, " -- word count %u\n", word_count);
+
     w = word_array[0];
-    lastdiff = diff = last = w->count;
-    for (i=0; i<word_count; i++) {
+
+    for (uint i=0; i<word_count; i++) {
         w = word_array[i];
-        diff = abs(last - w->count);
-        chg = lastdiff / (1.0*diff);
+        double perc = (100.0 * w->count)/token_occurence_count;
+        double perc_change = lastperc - perc;
         
-        if (DEBUG) fprintf(stderr, "%d\tld %d, d %d\tchg=%f\t%d\n",
-            i, lastdiff, diff, chg, flats);
-        if (chg < change_factor || diff == 0) {
+        if (DEBUG) fprintf(stderr, "%d\t%s\t%.3f\t%.3f\t->\t%.3f (%d)\n",
+            i, w->name, lastperc, perc, perc_change, flats);
+        if (perc_change < change_factor) {
             flats++;
             if (flats > flat_ct) { stop_at = i; break; }
         } else if (flats > 0) {
             flats--;
         }
-        last = w->count;
-        lastdiff = diff;
+        lastperc = perc;
     }
     return stop_at;
 }
@@ -79,6 +84,7 @@ int stopword_identify(set *word_set, ulong token_count,
     word *w;
     sw_udata ud;
     word **word_array = alloc(sizeof(word *) * token_count, 'W');
+    double cum = 0;
     
     if (DEBUG) printf("%lu tokens, %lu occurrences\n",
         token_count, token_occurence_count);
@@ -91,14 +97,19 @@ int stopword_identify(set *word_set, ulong token_count,
     qsort(ud.word_array, token_count, sizeof(word *), cmp_word_ct);
     
     stop_at = find_plateau(word_array, ud.word_count,
+        token_occurence_count,
         STOPWORD_FLAT_CT, STOPWORD_CHANGE_FACTOR);
     if (DEBUG) fprintf(stderr, "stop_at = %d\n", stop_at);
     
     for (i=0; i<stop_at; i++) {
         w = ud.word_array[i];
+        double perc = (100.0 * w->count)/token_occurence_count;
+        if (perc < STOPWORD_MIN_PERCENT) break;
+        cum += perc;
+        if (verbose) fprintf(stderr, " -- Setting stopword '%s' "
+            "(%.2f%% of input, %.2f%% cumulative)\n",
+            w->name, perc, cum);
         w->stop = 1;
-        if (verbose) fprintf(stderr, "Setting stopword #%d: '%s' (count %d)\n",
-            i, w->name, w->count);
     }
     return 0;
 }

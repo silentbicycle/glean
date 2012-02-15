@@ -39,11 +39,6 @@ typedef unsigned long ulong;
 /* Number of 'X's to use for database data alignment */
 #define DB_X_CT 1
 
-/* If using stop words, how many relatively-flat differences are
- * needed before stopping. Still experimental. */
-#define STOPWORD_FLAT_CT 5
-#define STOPWORD_CHANGE_FACTOR 0.75
-
 /* If file's first read has less % printable bytes than this, skip it. */
 #define MIN_TOKEN_PRINTABLE 0.8
 
