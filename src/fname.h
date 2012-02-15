@@ -1,5 +1,5 @@
-#ifndef FHASH_H
-#define FHASH_H
+#ifndef FNAME_H
+#define FNAME_H
 
 /* Box the filename pointer in a struct, for added typechecking. */
 typedef struct fname {
