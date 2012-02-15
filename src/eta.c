@@ -17,9 +17,9 @@ int eta_tostring(char *buf, int buf_sz, long sec, long done, long total) {
     if (gettimeofday(&tv, NULL) != 0) err(1, "gettimeofday");
     rate = (tv.tv_sec - sec) / (1.0 * done);
     rem = (total - done) * rate;
-    h = floor(rem / 3600);
-    m = floor((rem % 3600) / 60.0);
-    s = floor(rem % 60);
+    h = (uint) floor(rem / 3600);
+    m = (uint) floor((rem % 3600) / 60.0);
+    s = (uint) floor(rem % 60);
 
     if (h > 0) {
         len = snprintf(buf + bo, buf_sz - bo, "%dh ", h);
