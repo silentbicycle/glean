@@ -64,7 +64,10 @@ static char *get_pattern_file(int argc, char **argv) {
             assert(home);
             len = strlen(e) + strlen(home) + 1;
             path = alloc(len, 'p'); /* leaked. not a big deal. */
-            snprintf(path, len, "%s/%s", home, e + 2);
+            if (len <= snprintf(path, len, "%s/%s", home, e + 2)) {
+                fprintf(stderr, "snprintf error\n");
+                exit(EXIT_FAILURE);
+            }
             return path;
         }
         return e;
@@ -85,6 +88,7 @@ static void add_pattern(re_group *g, char *pat, char *action) {
     len = strlen(action) + 1;
     caction = alloc(len, 'a');
     strncpy(caction, action, len);
+    caction[len] = '\0';
     v_array_append(g->res, re);
     v_array_append(g->ans, caction);
     if (g->debug) fprintf(stderr, "Added re #%d: %s\n", v_array_length(g->res), pat);

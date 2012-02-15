@@ -81,7 +81,10 @@ static int assign_file(context *c) {
     
     /* add a line break, since workers' IO is line-based */
     len = strlen(fn->name);
-    snprintf(fnbuf, len + 2, "%s\n", fn->name);
+    if (len + 2 <= snprintf(fnbuf, len + 2, "%s\n", fn->name)) {
+        fprintf(stderr, "snprintf error\n");
+        exit(EXIT_FAILURE);
+    }
     if (c->verbose) printf(" -- Starting file %s (0x%0x8)\n",
         fn->name, word_hash(fn->name));
     
@@ -196,7 +199,7 @@ static void process_read(context *c, worker *w, int len, int wid) {
     if (DEBUG) printf("Copying remaining %d of %d (last:%d): %s\n",
         w->off, len, last, in + last);
     strncpy(in, in + last, w->off + 1); /* strlcpy */
-    /* strcpy(in, in + last); */
+
     if (DEBUG) printf(" ==== Copied -- \n%s\n====\n", in);
     assert(in[0] != '\n');
 }

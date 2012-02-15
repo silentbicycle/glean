@@ -74,6 +74,7 @@ static void open_dbs(dbinfo *db) {
     int minlen = strlen("glnF " GLN_VERSION_STRING) + 4;
     root_len = strlen(db->gln_dir);
     fn = alloc(fnlen + root_len + 1, 'n');
+    
     strncpy(fn, db->gln_dir, strlen(tokdb_fn) + root_len);
     
     strncat(fn, fndb_fn, fnlen);
@@ -86,6 +87,7 @@ static void open_dbs(dbinfo *db) {
         err(1, "%s", fn);
     
     strncpy(fn + root_len, tokdb_fn, fnlen);
+    fn[root_len + fnlen] = '\0';
     if (DEBUG) fprintf(stderr, "opening %s\n", fn);
     if ((stat(fn, &sb)) == -1) err(1, "%s", fn);
     tlen = sb.st_size;
@@ -104,7 +106,11 @@ static void read_settings(dbinfo *db) {
     char *buf, *path = alloc(path_len, 'p');
     size_t len;
     
-    snprintf(path, path_len, "%s/.gln/settings", db->gln_dir);
+    if (path_len <= snprintf(path, path_len,
+            "%s/.gln/settings", db->gln_dir)) {
+        fprintf(stderr, "snprintf error\n");
+        exit(EXIT_FAILURE);
+    }
     settings = fopen(path, "r");
     if (settings == NULL) err(1, "%s", path);
     
@@ -421,10 +427,15 @@ static void build_query(dbinfo *db, int *argc, char **argv[]) {
 
 static void format_cmd(dbinfo *db, char *cmd, char *pat, char *tokpath) {
     char *gz = (db->compressed ? "z" : "");
-    snprintf(cmd, PATH_MAX + 1,
-        (db->subtoken ? "%sgrep \"%s\" %s %s |sort|uniq"
-            : "%sgrep %s \"^%s$\" %s |sort|uniq"),
-        gz, db->case_sensitive ? "" : "-i", pat, tokpath);
+    char *cs_flag = db->case_sensitive ? "" : "-i";
+    char *fmt = db->subtoken
+            ? "%sgrep \"%s\" %s %s |sort|uniq"
+            : "%sgrep %s \"^%s$\" %s |sort|uniq";
+    if (PATH_MAX + 1 <= snprintf(cmd, PATH_MAX + 1,
+            fmt, gz, cs_flag, pat, tokpath)) {
+        fprintf(stderr, "snprintf error\n");
+        exit(EXIT_FAILURE);
+    }
 }
 
 static void get_matching_tokens(dbinfo *db) {
@@ -436,8 +447,12 @@ static void get_matching_tokens(dbinfo *db) {
     hash_t hash;
     uint ct;
     
-    snprintf(tokpath, PATH_MAX + 1, "%s/.gln/tokens%s",
-        db->gln_dir, db->compressed ? ".gz" : "");
+    if (PATH_MAX + 1 <= snprintf(tokpath, PATH_MAX + 1,
+            "%s/.gln/tokens%s",
+            db->gln_dir, db->compressed ? ".gz" : "")) {
+        fprintf(stderr, "snprintf error\n");
+        exit(EXIT_FAILURE);
+    }
     
     for (g = db->g; g != NULL; g = g->g) {
         pat = g->pattern;
@@ -445,8 +460,9 @@ static void get_matching_tokens(dbinfo *db) {
         if ((pipe = popen(cmd, "r")) == NULL) err(1, "popen fail");
         while ((buf = nextline(pipe, &len))) {
             if (buf[len - 1] == '\n') buf[len - 1] = '\0';
-            tok = alloc(len, 't');
+            tok = alloc(len + 1, 't');
             strncpy(tok, buf, len);
+            tok[len] = '\0';
             v_array_append(g->tokens, tok);
             hash = word_hash(buf);
             h_array_append(g->thashes, hash);
@@ -527,7 +543,8 @@ static void append_matching_fnames(dbinfo *db, hash_t fhash, uint o) {
         len = strlen(buf + off + 4 + HB);
         if (hash == fhash) {
             fn = alloc(len + 1, 'f');
-            strncpy(fn, buf + off + 4 + HB, len + 1);
+            strncpy(fn, buf + off + 4 + HB, len);
+            fn[len] = '\0';
             v_array_append(db->fnames, fn);
         }
         off = noff;
@@ -552,8 +569,12 @@ static char *get_timestamp_fname(dbinfo *db) {
     uint len;
     char *tsfile = alloc(MAXPATHLEN, 'p');
     len = strlen(db->gln_dir);
-    strncpy(tsfile, db->gln_dir, MAXPATHLEN);
-    strncpy(tsfile + len, "/.gln/timestamp ", MAXPATHLEN - len);
+    if (MAXPATHLEN <= snprintf(tsfile, MAXPATHLEN,
+            "%s/.gln/timestamp ", db->gln_dir)) {
+        fprintf(stderr, "snprintf error\n");
+        exit(EXIT_FAILURE);
+    }
+
     return tsfile;
 }
 
@@ -616,9 +637,13 @@ static void run_pipeline(dbinfo *db, int file_offset, int file_ct) {
             assert(db->grepnames >= 0 && db->grepnames <= 2);
             gnstr = (gnum > 0 ? "" : (char *) grepnames_opt[db->grepnames]);
             
-            snprintf(cmd + co, ARG_MAX, "%sgrep %s%s",
-                gnum > 0 ? "|" : "",
-                gnstr, (db->case_sensitive ? "" : "-i "));
+            char *cs_flag = (db->case_sensitive ? "" : "-i ");
+            char *pipe = gnum > 0 ? "|" : "";
+            if (ARG_MAX <= snprintf(cmd + co, ARG_MAX,
+                    "%sgrep %s%s", pipe, gnstr, cs_flag)) {
+                fprintf(stderr, "snprintf error\n");
+                exit(EXIT_FAILURE);
+            }
             if (gnum > 0) extra++;
             extra += strlen(gnstr);
             if (!db->case_sensitive) extra += 3;
@@ -631,8 +656,12 @@ static void run_pipeline(dbinfo *db, int file_offset, int file_ct) {
         /* -e tok -e tok2 ... */
         for (i=0; i<v_array_length(g->tokens); i++) {
             tok = (char *)v_array_get(g->tokens, i);
-            snprintf(cmd + co, ARG_MAX, "-e %s ", tok);
-            co += 4 + strlen(tok);;
+            if (ARG_MAX <= snprintf(cmd + co, ARG_MAX,
+                    "-e %s ", tok)) {
+                fprintf(stderr, "snprintf error\n");
+                exit(EXIT_FAILURE);
+            }
+            co += 4 + strlen(tok);
         }
         gnum++;                
     }

@@ -39,7 +39,7 @@ int filter_open_coprocess(int *pid) {
 static int should_skip(int fd, char *fname, int len) {
     char buf[4096];
     int sz;
-    strncpy(buf, fname, len + 1);
+    strncpy(buf, fname, len);
     buf[len-1] = '\n'; buf[len] = '\0';    /* for getline */
     sz = write(fd, buf, len);
     assert(sz > 0);

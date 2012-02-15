@@ -32,7 +32,8 @@ set *fname_new_set(int sz_factor) {
 fname *fname_new(char *n, size_t len) {
     fname *res = alloc(sizeof(*res), 'f');
     char *name = alloc(len + 1, 'n');
-    strncpy(name, n, len + 1); /* strlcpy */
+    strncpy(name, n, len); /* strlcpy */
+    name[len] = '\0';
     res->name = name;
     return res;
 }

@@ -49,7 +49,11 @@ static void version() {
 static char *get_gln_path(context *c, const char *fname) {
     int len = strlen(c->wkdir) + strlen(fname) + 2;
     char *path = alloc(len, 'p'); /* could use alloca... */
-    snprintf(path, len + 1, "%s/%s", c->wkdir, fname);
+    if (len + 1 <= snprintf(path, len + 1,
+            "%s/%s", c->wkdir, fname)) {
+        fprintf(stderr, "snprintf error\n");
+        exit(EXIT_FAILURE);
+    }
     return path;
 }
 
@@ -70,7 +74,10 @@ static int open_db(char *path, char *file, int update) {
     assert(plen > 0); assert(flen > 0);
     plen += strlen(file) + 2;
     fn = alloc(plen, 'f');
-    snprintf(fn, plen, "%s/%s", path, file);
+    if (plen <= snprintf(fn, plen, "%s/%s", path, file)) {
+        fprintf(stderr, "snprintf error\n");
+        exit(EXIT_FAILURE);
+    }
     fd = open(fn, O_RDWR | (update ? 0 : O_TRUNC) | O_CREAT /* sic */, 0744);
     if (DEBUG) fprintf(stderr, "opening %s, got fd %d\n", fn, fd);
     if (fd == -1) err(1, "%s", fn);
@@ -113,7 +120,11 @@ static void init_files(context *c) {
     char *cwd = NULL;
     int find_cmd_len;
     
-    snprintf(gln_path, gln_path_len, "%s/.gln/", c->wkdir);
+    if (gln_path_len <= snprintf(gln_path, gln_path_len,
+            "%s/.gln/", c->wkdir)) {
+        fprintf(stderr, "snprintf error\n");
+        exit(EXIT_FAILURE);
+    }
     if (mkdir(gln_path, 0755) != 0) {
         if (errno != EEXIST) err(1, "failed to create working dir");
         errno = 0;
@@ -129,7 +140,11 @@ static void init_files(context *c) {
     
     find_cmd_len = strlen(find_cmd_fmt) - 1 + strlen(c->root);
     find_cmd = alloc(find_cmd_len, 'C');
-    snprintf(find_cmd, find_cmd_len, find_cmd_fmt, c->root);
+    if (find_cmd_len <= snprintf(find_cmd, find_cmd_len,
+            find_cmd_fmt, c->root)) {
+        fprintf(stderr, "snprintf error\n");
+        exit(EXIT_FAILURE);
+    }
     if ((finder = popen(find_cmd, "r")) == NULL) err(1, "finder fail");
     c->find = finder;
     if (cwd) {
@@ -174,12 +189,18 @@ static void free_context(context *c) {
         err(1, "close");
 }
 
+/* Execute `sort FILE | gzip > FILE.gz && rm FILE`. */
 static int gzip_tokens_file(context *c) {
     char *tf = get_gln_path(c, ".gln/tokens");
-    char *buf = alloc(BUF_SZ, 'b');
     int res, len = strlen(tf);
-    snprintf(buf, 3*len + 32, "sort \"%s\" | gzip > \"%s.gz\" && rm \"%s\"",
-        tf, tf, tf);
+    char *fmt = "sort \"%s\" | gzip > \"%s.gz\" && rm \"%s\"";
+    int buf_sz = 3*len + strlen(fmt) + 1;
+    char *buf = alloc(buf_sz, 'b');
+    if (buf_sz <= snprintf(buf, buf_sz,
+            fmt, tf, tf, tf)) {
+        fprintf(stderr, "snprintf error\n");
+        exit(EXIT_FAILURE);
+    }
     res = system(buf);
     free(tf);
     free(buf);

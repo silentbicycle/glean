@@ -105,6 +105,7 @@ static int readloop(int fd, set *s, int case_sensitive,
             if (DEBUG) fprintf(stderr, "Copying incomplete word (%d): %s\n",
                 diff, buf + last);
             strncpy(buf, buf + last, diff);
+            buf[diff] = '\0';
             read_offset = diff;
             read_sz -= read_offset;
             last = 0;
