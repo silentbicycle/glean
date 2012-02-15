@@ -31,6 +31,8 @@ static char *default_ignore_REs[] = {
     "\\.git/", "\\.hg/", "CVS/",
     /* emacs backup files */
     "~$",
+    /* dotfiles */
+    "/\\.",
     /* Various extensions for file types that may begin w/ text headers. */
     "\\.mp3$", "\\.pdf$", "\\.jpg$", "\\.ogg$", "\\.ppt$",
     "\\.zip$", "\\.chm$",
