@@ -5,7 +5,7 @@ include config.mk
 
 PROGS= 		gln gln_filter gln_index gln_tokens test_gln
 
-COMMON_O=	alloc.o array.o db.o dumphex.o nextline.o set.o whash.o
+COMMON_O=	alloc.o array.o db.o dumphex.o nextline.o set.o word.o
 GLN_O=		
 GLN_FILTER_O=	
 GLN_INDEX_O=	eta.o fname.o stopword.o
@@ -65,12 +65,12 @@ gln_tests: tests/tests.c
 *.c: glean.h alloc.h Makefile
 
 array.c: array.h
-db.c: db.h gln_index.h whash.h
+db.c: db.h gln_index.h word.h
 fname.c: set.h fname.h 
-gln.c:  set.h whash.h gln.h
+gln.c:  set.h word.h gln.h
 gln_index.c: gln_index.h
 gln_filter.c: alloc.h nextline.h array.h
 set.c: set.h
-stopword.c: stopword.h set.h whash.h gln_index.h
-tokenize.c: tokenize.h whash.h
-whash.c: tokenize.h whash.h set.h
+stopword.c: stopword.h set.h word.h gln_index.h
+tokenize.c: tokenize.h word.h
+word.c: tokenize.h word.h set.h

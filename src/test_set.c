@@ -63,7 +63,7 @@ static char *words[] = { /* These are from http://veggieipsum.com/. */
 static int word_count = sizeof(words) / sizeof(words[0]) - 1;
 
 /* 0 files to go -> "0s " */
-TEST add_words_find_dupes() {
+TEST word_adds_find_dupes() {
     set *s = set_new(2, dumb_hash, cmp);
     int duplicates[word_count];
     bzero(duplicates, word_count * sizeof(int));
@@ -115,6 +115,6 @@ TEST print_words_if_verbose() {
 }
 
 SUITE(set_suite) {
-    RUN_TEST(add_words_find_dupes);
+    RUN_TEST(word_adds_find_dupes);
     RUN_TEST(print_words_if_verbose);
 }

@@ -7,11 +7,11 @@
 
 #include "glean.h"
 #include "set.h"
-#include "whash.h"
+#include "word.h"
 #include "fname.h"
 
 static hash_t fname_hash(void *v) {
-    return hash_word(((fname *)v)->name);
+    return word_hash(((fname *)v)->name);
 }
 
 static int fname_cmp(void *a, void *b) {

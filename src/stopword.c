@@ -11,7 +11,7 @@
 
 #include "glean.h"
 #include "set.h"
-#include "whash.h"
+#include "word.h"
 #include "gln_index.h"
 #include "stopword.h"
 
@@ -28,7 +28,7 @@ typedef struct sw_udata {
     word **word_array;
 } sw_udata;
 
-static void add_word_to_array(void *v, void *udata) {
+static void word_add_to_array(void *v, void *udata) {
     sw_udata *ud = (sw_udata *) udata;
     word *w = (word *) v;
     ud->word_array[ud->word_count++] = w;
@@ -85,7 +85,7 @@ int stopword_identify(set *word_set, ulong token_count,
     
     ud.word_count = 0;
     ud.word_array = word_array;
-    set_apply(word_set, add_word_to_array, &ud);
+    set_apply(word_set, word_add_to_array, &ud);
     if (ud.word_count == 0) return -1;
 
     qsort(ud.word_array, token_count, sizeof(word *), cmp_word_ct);

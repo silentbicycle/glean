@@ -29,7 +29,7 @@
 #include "glean.h"
 #include "array.h"
 #include "set.h"
-#include "whash.h"
+#include "word.h"
 #include "tokenize.h"
 
 #define BUF_SZ 64 * 1024
@@ -54,7 +54,7 @@ static int is_mostly_binary(size_t ct, char *buf) {
 
 /* Given a read buffer of length (ct), identify and save individual tokens.
  * 
- * This (and whash.c's hash_word) will need to be changed for i18n.
+ * This (and word_hash) will need to be changed for i18n.
  * It should probably be made a config option. */
 static int scanner(set *s, int ct, int *inword, int case_sensitive) {
     int i, j, last = 0;
@@ -71,7 +71,7 @@ static int scanner(set *s, int ct, int *inword, int case_sensitive) {
                 if (!case_sensitive)
                     for (j=0; j<diff; j++)
                         buf[last+j] = tolower(buf[last+j]);
-                add_word(s, buf + last, diff);
+                word_add(s, buf + last, diff);
             }
         } else if (!*inword && alf) { /* start of new token */
             last = i;
@@ -116,7 +116,7 @@ static int readloop(int fd, set *s, int case_sensitive,
     }
     
     if (ct == -1) err(1, "read fail");
-    print_and_zero_words(s);
+    word_print_and_zero(s);
     return 0;
 }
 

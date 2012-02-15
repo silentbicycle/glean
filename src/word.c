@@ -7,7 +7,7 @@
 
 #include "glean.h"
 #include "set.h"
-#include "whash.h"
+#include "word.h"
 #include "tokenize.h"
 #include "array.h"
 
@@ -15,7 +15,7 @@
  * bytes used in hashed data. */
 #define HASH_MULTIPLIER 139
 
-hash_t hash_word(char *w) {
+hash_t word_hash(char *w) {
     hash_t i, h = 0;
     for (i=0; w[i] != '\0'; i++)
         h = HASH_MULTIPLIER*h + (uint) w[i];
@@ -24,20 +24,20 @@ hash_t hash_word(char *w) {
     return h;
 }
 
-static hash_t word_hash(void *v) {
-    return hash_word(((word *)v)->name);
+static hash_t hash_cb(void *v) {
+    return word_hash(((word *)v)->name);
 }
 
-static int word_cmp(void *a, void *b) {
+static int cmp_cb(void *a, void *b) {
     char *na = ((word*)a)->name, *nb = ((word*)b)->name;
     return strcmp(na, nb);
 }
 
-set *init_word_set(int sz_factor) {
-    return set_new(sz_factor, word_hash, word_cmp);
+set *word_set_init(int sz_factor) {
+    return set_new(sz_factor, hash_cb, cmp_cb);
 }
 
-word *new_word(char *w, size_t len, uint data) {
+word *word_new(char *w, size_t len, uint data) {
     word *ws = alloc(sizeof(word), 'w');
     char *nbuf = alloc(len + 1, 'n');
     assert(len > 0);
@@ -53,7 +53,7 @@ word *new_word(char *w, size_t len, uint data) {
     return ws;
 }
 
-void free_word(void *v) {
+void word_free(void *v) {
     word *w = (word *)v;
     assert(w); assert(w->name);
     free(w->name);
@@ -62,7 +62,7 @@ void free_word(void *v) {
 }
 
 /* Add an occurance of a word to the known words, allocating it if necessary. */
-word *add_word(set *s, char *w, size_t len) {
+word *word_add(set *s, char *w, size_t len) {
     char wbuf[MAX_WORD_SZ];
     word *nw;
     int res;
@@ -70,9 +70,9 @@ word *add_word(set *s, char *w, size_t len) {
     assert(len > 0);
     strncpy(wbuf, w, len);
     wbuf[len] = '\0';
-    nw = get_word(s, wbuf);
+    nw = word_get(s, wbuf);
     if (nw == NULL) {             /* nonexistent */
-        nw = new_word(wbuf, len, 1);
+        nw = word_new(wbuf, len, 1);
         if (DEBUG)
             fprintf(stderr, "-- Adding word %s (%lu) -> %s\n", wbuf, len, nw->name);
         res = set_store(s, nw);
@@ -86,7 +86,7 @@ word *add_word(set *s, char *w, size_t len) {
     return nw;
 }
 
-word *get_word(set *s, char *wname) {
+word *word_get(set *s, char *wname) {
     word w, *res;
     w.name = wname;
     res = (word*)set_get(s, &w);
@@ -97,8 +97,8 @@ word *get_word(set *s, char *wname) {
     return res;
 }
 
-int known_word(set *s, char *wname) {
-    word *w = get_word(s, wname);
+int word_known(set *s, char *wname) {
+    word *w = word_get(s, wname);
     return w != NULL && w->i > 0;
 }
 
@@ -109,7 +109,7 @@ static void print_and_zero(void *v, void *unused) {
 }
 
 /* Print known words & location flags, clearing the flags along the way. */
-void print_and_zero_words(set *s) { set_apply(s, print_and_zero, NULL); }
+void word_print_and_zero(set *s) { set_apply(s, print_and_zero, NULL); }
 
 char *default_gln_dir() { /* ~ */
     char *hm = getenv("HOME");

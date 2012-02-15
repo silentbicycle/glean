@@ -17,7 +17,7 @@
 
 #include "glean.h"
 #include "set.h"
-#include "whash.h"
+#include "word.h"
 #include "fname.h"
 #include "tokenize.h"
 #include "array.h"
@@ -114,7 +114,7 @@ static context *init_context() {
     c->wkdir = default_gln_dir();
     c->root = NULL;
     
-    c->word_set = init_word_set(0);
+    c->word_set = word_set_init(0);
     c->fn_set = fname_new_set(0);
     c->verbose = c->show_progress = c->use_stop_words = 0;
     c->case_sensitive = 0;
@@ -227,7 +227,8 @@ static int assign_file(context *c) {
     /* add a line break, since workers' IO is line-based */
     len = strlen(fn->name);
     snprintf(fnbuf, len + 2, "%s\n", fn->name);
-    if (c->verbose) printf(" -- Starting file %s (0x%0x8)\n", fn->name, hash_word(fn->name));
+    if (c->verbose) printf(" -- Starting file %s (0x%0x8)\n",
+        fn->name, word_hash(fn->name));
     
     for (i=0; i<c->w_ct; i++) {
         w = &c->ws[i];
@@ -246,7 +247,7 @@ static int assign_file(context *c) {
 static void free_context(context *c) {
     int i;
     worker *w;
-    set_free(c->word_set, free_word);
+    set_free(c->word_set, word_free);
     set_free(c->fn_set, fname_free_cb);
     for (i=0; i<c->w_ct; i++) {
         w = &(c->ws[i]);
@@ -393,15 +394,15 @@ static void cons_word(context *c, word *w, hash_t hash) {
  * Always emit "$tokenid $fileid $data". */
 static void note_instance(context *c, worker *w, char *wbuf,
     uint data, uint len, hash_t fnhash) {
-    int known = known_word(c->word_set, wbuf);
+    int known = word_known(c->word_set, wbuf);
     word *word = NULL;
     if (known) {
-        word = get_word(c->word_set, wbuf);
+        word = word_get(c->word_set, wbuf);
         assert(strcmp(wbuf, word->name) == 0);
         word->i += data;
         c->t_occ_ct += data;
     } else {
-        word = add_word(c->word_set, wbuf, len);
+        word = word_add(c->word_set, wbuf, len);
         c->t_ct++;
     }        
     /* cons word */
@@ -423,7 +424,7 @@ static void process_read(context *c, worker *w, int len, int wid) {
     char *in = w->buf;
     uint data;
     uint wlen;      /* current word's length */
-    hash_t fnhash = hash_word(w->fname->name);
+    hash_t fnhash = word_hash(w->fname->name);
     if (DEBUG)
         fprintf(stderr, "Current fname: %s -> %04x\n", w->fname->name, fnhash);
     

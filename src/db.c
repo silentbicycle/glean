@@ -11,7 +11,7 @@
 
 #include "glean.h"
 #include "set.h"
-#include "whash.h"
+#include "word.h"
 #include "fname.h"
 #include "array.h"
 #include "gln_index.h"
@@ -221,7 +221,7 @@ static ulong pack_fname_bucket(context *c, dbdata* db, s_link *tl) {
         buf_int32(db->buf, 0, co);    /* set to 0 (for now) */
         db->o += 4;
         
-        fhash = hash_word(name);
+        fhash = word_hash(name);
         buf_hash(db->buf, fhash, db->o);
         db->o += HB;
         if (DB_DEBUG) fprintf(stderr, "  %lu (+%ld) -> %04x : %s\n",
@@ -274,7 +274,7 @@ static ulong pack_token_bucket(context *c, dbdata* db, s_link *tl) {
         
         w = (word *) cur->key;
         fprintf(c->tlog, "%s\n", w->name); /* append words to log */
-        hash = hash_word(w->name);
+        hash = word_hash(w->name);
         a = w->a;
         assert(a);
         if (DEBUG_WD) fprintf(stderr, "Word is %s (%04x): %u occs (%d), ",

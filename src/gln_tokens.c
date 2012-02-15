@@ -9,7 +9,7 @@
 
 #include "glean.h"
 #include "set.h"
-#include "whash.h"
+#include "word.h"
 #include "tokenize.h"
 
 #define BUF_SZ 4096
@@ -18,7 +18,7 @@
 
 /* Read in filenames from stdin and tokenize them. If given " DONE", quit. */
 int main(int argc, char *argv[]) {
-    set *wt = init_word_set(0);
+    set *wt = word_set_init(0);
     char buf[BUF_SZ];
     int pid = getpid();
     int case_sensitive = (argc == 2 && strcmp(argv[1], "-c") == 0);
@@ -43,8 +43,8 @@ int main(int argc, char *argv[]) {
             fflush(stdout);
             
             if (++files >= FLUSH_COUNT) {
-                set_free(wt, free_word);
-                wt = init_word_set(0);
+                set_free(wt, word_free);
+                wt = word_set_init(0);
                 if (0) fprintf(stderr, "flush: %d, %d\n", getpid(), files);
                 files = 0;
             }
@@ -54,6 +54,6 @@ int main(int argc, char *argv[]) {
         } else break;
     }
     if (DEBUG_HASH) set_stats(wt, 0);
-    set_free(wt, free_word);
+    set_free(wt, word_free);
     return 0;
 }

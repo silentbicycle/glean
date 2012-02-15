@@ -17,7 +17,7 @@
 #include "glean.h"
 #include "set.h"
 #include "fname.h"
-#include "whash.h"
+#include "word.h"
 #include "gln_index.h"
 #include "db.h"
 #include "gln.h"
@@ -330,7 +330,7 @@ static int hash_loop(char *buf) {
     for (;;) {
         if (fgets(buf, MAX_WORD_SZ, stdin) != NULL) {
             buf[strcspn(buf, "\n")] = '\0';
-            hash = hash_word(buf);
+            hash = word_hash(buf);
             printf("%s %u 0x%04x\n", buf, hash, hash);
         } else break;
     }
@@ -448,7 +448,7 @@ static void get_matching_tokens(dbinfo *db) {
             tok = alloc(len, 't');
             strncpy(tok, buf, len);
             v_array_append(g->tokens, tok);
-            hash = hash_word(buf);
+            hash = word_hash(buf);
             h_array_append(g->thashes, hash);
             if (db->tokens_only) printf("%s\n", tok);
         }
