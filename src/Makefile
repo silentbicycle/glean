@@ -8,7 +8,7 @@ PROGS= 		gln gln_filter gln_index gln_tokens test_gln
 COMMON_O=	alloc.o array.o db.o dumphex.o nextline.o set.o word.o
 GLN_O=		
 GLN_FILTER_O=	
-GLN_INDEX_O=	eta.o fname.o stopword.o
+GLN_INDEX_O=	eta.o filter.o fname.o stopword.o worker.o
 GLN_TOKENS_O=	tokenize.o
 
 SUITES=		test_array.o test_eta.o test_set.o

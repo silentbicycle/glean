@@ -12,24 +12,24 @@
 #include <sys/param.h>
 #include <err.h>
 #include <errno.h>
-#include <math.h>
-#include <signal.h>
 
 #include "glean.h"
 #include "set.h"
 #include "word.h"
 #include "fname.h"
-#include "tokenize.h"
 #include "array.h"
 #include "gln_index.h"
 #include "db.h"
 #include "stopword.h"
-#include "eta.h"
+#include "filter.h"
 #include "nextline.h"
+#include "worker.h"
 
 static void usage() {
-    puts("usage: gln_index [-hVvpcs] [-d DB_DIR] [-r INDEX_ROOT] \n"
-        "[-f FILTER_CONFIG_FILE] [-w WORKER_CT]");
+    fprintf(stderr,
+        "usage: gln_index [-hVvpcs] [-d DB_DIR] [-r INDEX_ROOT] \n"
+        "                 [-f FILTER_CONFIG_FILE] [-w WORKER_CT]\n"
+        "    See gln_filter(1) for more information.\n");
     exit(1);
 }
 
@@ -44,37 +44,6 @@ static void version() {
     }
     printf(" by Scott Vokes\n");
     exit(0);
-}
-
-/* Start a tokenizer coprocess, setting its stdin & stdout to the socket. */
-static void start_worker(int fd, int case_sensitive) {
-    char *cs = (case_sensitive ? "-c" : "");
-    dup2(fd, 0);            /* set stdin & stdout to full-duplex pipe */
-    dup2(fd, 1);
-    if (execlp("gln_tokens", "gln_tokens", cs, (char *)NULL) == -1)
-        err(1, "worker execlp fail (is gln_tokens in your path?)");
-}
-
-/* Initialize an individual worker process. */
-static void init_worker(context *c, worker *w) {
-    int pair[2], i;
-    int res = socketpair(AF_UNIX, SOCK_STREAM, 0, pair);
-    if (res == -1) err(1, "socketpair");
-    for (i=0; i<2; i++) {
-        if (fcntl(pair[0], F_SETFL, O_NONBLOCK) == -1)
-            err(1, "setting nonblock failed");
-    }
-    res = fork();
-    if (res == -1) {
-        err(1, "fork");
-    } else if (res == 0) {
-        start_worker(pair[1], c->case_sensitive);
-    } else {
-        w->s = pair[0];
-        w->fname = NULL;
-        w->off = 0;
-        w->buf = alloc(sizeof(char) * (BUF_SZ+1), 'b');
-    }
 }
 
 static char *get_gln_path(context *c, const char *fname) {
@@ -136,22 +105,6 @@ static int fsize(int fd) {
     return sb.st_size;
 }
 
-static int open_filter_coprocess(int *pid) {
-    int res, sv[2];
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == -1) err(1, "socketpair");
-    res = fork();
-    if (res == -1) {
-        err(1, "fork");
-    } else if (res == 0) {  /* child */
-        dup2(sv[1], STDIN_FILENO),
-          dup2(sv[1], STDOUT_FILENO);
-        if (execlp("gln_filter", "gln_filter", (char *)NULL) == -1)
-            err(1, "filter execlp fail (is gln_filter in your path?");
-    }
-    *pid = res;
-    return sv[0];
-}
-
 static void init_files(context *c) {
     FILE *finder;
     int tstamp, gln_path_len = strlen(c->wkdir) + strlen("/.gln/");
@@ -184,7 +137,7 @@ static void init_files(context *c) {
         free(cwd);
     }
     
-    c->filter_fd = open_filter_coprocess(&c->filter_pid);
+    c->filter_fd = filter_open_coprocess(&c->filter_pid);
     c->tlog = open_gln_log(c, ".gln/tokens");
     c->settings = open_gln_log(c, ".gln/settings");
     c->swlog = open_gln_log(c, ".gln/stopwords");
@@ -201,47 +154,6 @@ static void save_settings(context *c) {
     fprintf(c->settings, "case_sensitive %d\n", c->case_sensitive);
     fprintf(c->settings, "compressed %d\n", c->compressed);
     /* other options go here later */
-}
-
-static void init_workers(context *c) {
-    worker *ws = alloc(sizeof(worker) * c->w_ct, 'w');
-    uint i, max_sock = 0;
-    c->ws = ws;
-    c->w_avail = c->w_ct;
-    c->w_busy = 0;
-    for (i=0; i < c->w_ct; i++) {
-        init_worker(c, &c->ws[i]);
-        if (c->ws[i].s > max_sock) max_sock = c->ws[i].s;
-    }
-    c->max_w_socket = max_sock;
-}
-
-/* Try to assign a file to an unoccupied worker, return 1 on success. */
-static int assign_file(context *c) {
-    fname *fn = (fname *)v_array_get(c->fnames, c->f_ni);
-    worker *w;
-    uint i, len, len2;
-    char fnbuf[PATH_MAX + 1]; /* for add'l \n */
-    assert(fn);
-    
-    /* add a line break, since workers' IO is line-based */
-    len = strlen(fn->name);
-    snprintf(fnbuf, len + 2, "%s\n", fn->name);
-    if (c->verbose) printf(" -- Starting file %s (0x%0x8)\n",
-        fn->name, word_hash(fn->name));
-    
-    for (i=0; i<c->w_ct; i++) {
-        w = &c->ws[i];
-        if (w->fname == NULL) {
-            len2 = write(w->s, fnbuf, len + 1);
-            assert(len == len2 - 1);
-            w->fname = fn;
-            c->f_ni++;
-            return 1;
-        }
-    }
-    err(1, "no worker could be assigned");
-    return 0;
 }
 
 static void free_context(context *c) {
@@ -303,198 +215,6 @@ static int finish(context *c) {
     free(c);
     free_nextline_buffer();
     return res;               /* for now */
-}
-
-static int filter_match(int fd, char *fname, int len) {
-    char buf[4096];
-    int sz;
-    strncpy(buf, fname, len + 1);
-    buf[len-1] = '\n'; buf[len] = '\0';    /* for getline */
-    sz = write(fd, buf, len);
-    assert(sz > 0);
-    sz = read(fd, buf, 4095);
-    assert(sz > 0);
-    buf[sz] = '\0';
-    if (strncmp(buf, "ignore", sz - 1) == 0) return 1;
-    if (strncmp(buf, "index", sz - 1) == 0) return 0;
-    fprintf(stderr, "Bad filter response: %s\n"
-        "currently only 'ignore' and 'index' are supported.\n", buf);
-    return 1;
-}
-
-static void enqueue_files(context *c) {
-    char *buf;
-    size_t len;
-    fname *fn;
-    uint ct=0, sp = (c->verbose || c->show_progress);
-    int matched;
-    if (c->find == NULL) return;
-    
-    if (sp) fprintf(stderr, "-- enqueueing all files to index\n");
-    
-    while ((buf = nextline(c->find, &len)) != NULL) {
-        matched = filter_match(c->filter_fd, buf, len);
-        if (buf[len - 1] == '\n') buf[len - 1] = '\0';
-        if (matched) {
-            if (c->verbose || DEBUG)
-                fprintf(stderr, "Ignoring: %s\n", buf);
-        } else {
-            fn = fname_new(buf, len);
-            v_array_append(c->fnames, fn);
-            if (c->verbose > 1) fprintf(stderr, "Appended: %d %s\n",
-                v_array_length(c->fnames), fn->name);
-            ct++;
-            if (ct % ENQUEUE_PROGRESS_CT == 0)
-                fprintf(stderr, "%u files enqueued...\n", ct);
-        }
-    }
-    
-    /* clean up find & filter processes */
-    if (close(c->filter_fd) == -1) err(1, "close");
-    if ((kill(c->filter_pid, SIGKILL)) == -1) err(1, "kill");
-    if ((wait(NULL) == -1)) err(1, "wait");
-    c->find = NULL;
-    
-    c->tick_max = v_array_length(c->fnames) / 100;
-    
-    if (sp) fprintf(stderr, "-- enqueueing done, indexing %u files\n", ct);
-}
-
-static int schedule_workers(context *c) {
-    int work=0;
-    uint fni = c->f_ni, fnlen = v_array_length(c->fnames);
-    if (fni == fnlen) return 0;
-    
-    /* Show progress */
-    if (c->show_progress && ++c->tick >= c->tick_max) {
-        fprintf(stderr, "%.2f%%, %d of %d files, eta ",
-            (100.0 * (fni+1)) / fnlen, fni + 1, fnlen);
-        eta_fprintf(stderr, c->startsec, fni, fnlen);
-        fprintf(stderr, "\n");
-        c->tick = 0;
-    }
-    
-    if (assign_file(c)) {
-        c->w_avail--;
-        c->w_busy++;
-        work = 1;
-    }
-    
-    return work;
-}
-
-static void cons_word(context *c, word *w, hash_t hash) {
-    assert(w);
-    assert(w->a);
-    h_array_append(w->a, hash);
-    if (HASH_BYTES == 2) assert(hash == hash % 0xffff);
-}
-
-/* If word is new, assign token ID and emit "t $tokenid $token\n".
- * Always emit "$tokenid $fileid $data". */
-static void note_instance(context *c, worker *w, char *wbuf,
-                          uint count, uint len, hash_t fnhash) {
-    int known = word_known(c->word_set, wbuf);
-    word *word = NULL;
-    if (known) {
-        word = word_get(c->word_set, wbuf);
-        assert(strcmp(wbuf, word->name) == 0);
-        word->count += count;
-        c->t_occ_ct += count;
-    } else {
-        word = word_add(c->word_set, wbuf, len);
-        c->t_ct++;
-    }        
-    /* cons word */
-    if (word) cons_word(c, word, fnhash);
-    if (c->verbose > 1) printf("GOT: %s (%d) in %04x, %d\n",
-        wbuf, len, fnhash, count);
-}
-
-static int digits(uint d) {
-    uint r=0;
-    while (d >= 10) { r++; d /= 10; }
-    if (d > 0) r++;
-    return r;
-}
-
-/* Handle data read from a worker. */
-static void process_read(context *c, worker *w, int len, int wid) {
-    int i, toks=0, last=0;
-    char wbuf[MAX_WORD_SZ];
-    char *in = w->buf;
-    uint count;
-    uint wlen;      /* current word's length */
-    hash_t fnhash = word_hash(w->fname->name);
-    if (DEBUG)
-        fprintf(stderr, "Current fname: %s -> %04x\n", w->fname->name, fnhash);
-    
-    for (i=0; i<len; i++) {
-        if (in[i] == '\n') {
-            toks = sscanf(in + last, "%s %u\n", wbuf, &count);
-            if (toks == 2) {
-                wlen = i - last - 1 - digits(count);
-                assert(wlen == strlen(wbuf));
-                note_instance(c, w, wbuf, count, wlen, fnhash);
-                last = i + 1;
-            } else if (strncmp(in + last, " SKIP", 5) == 0) {
-                if (c->verbose >= 1) printf(" -- Skipping file %s\n", w->fname->name);
-                w->fname = NULL; w->off = 0;
-                c->w_busy--; c->w_avail++;
-                return;                                
-            } else if (strncmp(in + last, " DONE", 5) == 0) {
-                if (c->verbose > 1) printf(" -- Done with file %s\n", w->fname->name);
-                fname_add(c->fn_set, w->fname);
-                w->fname = NULL; w->off = 0;
-                c->w_busy--; c->w_avail++;
-                return;
-            } else {
-                err(1, "printf-debugging corrupted worker input?");
-            }
-        }
-    }
-    
-    w->off = len - last;
-    if (DEBUG) printf("Copying remaining %d of %d (last:%d): %s\n",
-        w->off, len, last, in + last);
-    strncpy(in, in + last, w->off + 1); /* strlcpy */
-    /* strcpy(in, in + last); */
-    if (DEBUG) printf(" ==== Copied -- \n%s\n====\n", in);
-    assert(in[0] != '\n');
-}
-
-static int check_workers(context *c, fd_set *fdsr) {
-    int i, len=0;
-    int ready_ct;
-    struct timeval tv = { 0, 10 * 1000 };
-    worker *w;
-    
-    for (i=0; i<c->w_ct; i++) FD_SET(c->ws[i].s, fdsr);
-    ready_ct = select(c->max_w_socket + 1, fdsr, NULL, NULL, &tv);
-    if (ready_ct == -1) err(1, "select");
-    
-    /* check if any workers are done, read + log data */
-    for (i=0; i<c->w_ct; i++) {
-        w = &c->ws[i];
-        if (FD_ISSET(w->s, fdsr)) {
-            do {
-                len = read(w->s, w->buf + w->off, BUF_SZ - w->off);
-                if (len > 0) {
-                    w->buf[len + w->off] = '\0';
-                    process_read(c, w, len + w->off, i);
-                } else if (len == 0) {
-                    printf("EOF'd %d; %s\n", i, w->buf);
-                    /* EOF? */
-                } else if (errno == EAGAIN) {
-                    errno = 0;
-                    break;
-                } else {
-                    err(1, "worker read fail");
-                }
-            } while (len > 0);
-        }
-    }
-    return 0;
 }
 
 static void handle_args(context *c, int *argc, char **argv[]) {
@@ -570,8 +290,8 @@ int main(int argc, char *argv[]) {
     init_files(c);
     save_settings(c);
     
-    enqueue_files(c);
-    init_workers(c);
+    filter_enqueue_files(c);
+    if (worker_init_all(c) < 0) exit(EXIT_FAILURE);
     
     fnlen = v_array_length(c->fnames);
     
@@ -585,8 +305,12 @@ int main(int argc, char *argv[]) {
     for (;;) {
         assert(tv.tv_sec == 0);
         assert(c->w_busy + c->w_avail == c->w_ct);
-        if (c->w_avail > 0) action = schedule_workers(c);
-        if (c->w_busy > 0) action = check_workers(c, fdsr) || action;
+        if (c->w_avail > 0) action = worker_schedule(c);
+        if (action < 0) {
+            fprintf(stderr, "Error while scheduling worker process\n");
+            exit(EXIT_FAILURE);
+        }
+        if (c->w_busy > 0) action = worker_check(c, fdsr) || action;
         
         if (action) {
             action = 0;
