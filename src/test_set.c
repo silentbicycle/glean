@@ -5,7 +5,7 @@
 #include <assert.h>
 
 #include "glean.h"
-#include "table.h"
+#include "set.h"
 
 #include "greatest.h"
 
@@ -71,7 +71,6 @@ TEST add_words_find_dupes() {
     for (int i=0; i<word_count; i++) {
         char *w = words[i];
         ASSERT(w);
-        void *cur = table_get(t, w);
         if (table_known(t, w)) {
             duplicates[i] = 1;
         } else {
@@ -115,7 +114,7 @@ TEST print_words_if_verbose() {
     PASS();
 }
 
-SUITE(table_suite) {
+SUITE(set_suite) {
     RUN_TEST(add_words_find_dupes);
     RUN_TEST(print_words_if_verbose);
 }

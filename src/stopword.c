@@ -10,7 +10,7 @@
 #include <sys/resource.h>
 
 #include "glean.h"
-#include "table.h"
+#include "set.h"
 #include "whash.h"
 #include "gln_index.h"
 #include "stopword.h"

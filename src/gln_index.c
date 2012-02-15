@@ -16,7 +16,7 @@
 #include <signal.h>
 
 #include "glean.h"
-#include "table.h"
+#include "set.h"
 #include "whash.h"
 #include "fhash.h"
 #include "tokenize.h"

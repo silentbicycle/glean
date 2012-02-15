@@ -15,7 +15,7 @@
 #include <zlib.h>
 
 #include "glean.h"
-#include "table.h"
+#include "set.h"
 #include "fhash.h"
 #include "whash.h"
 #include "gln_index.h"

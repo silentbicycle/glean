@@ -5,13 +5,13 @@ include config.mk
 
 PROGS= 		gln gln_filter gln_index gln_tokens test_gln
 
-COMMON_O=	alloc.o array.o db.o dumphex.o nextline.o table.o whash.o
+COMMON_O=	alloc.o array.o db.o dumphex.o nextline.o set.o whash.o
 GLN_O=		
 GLN_FILTER_O=	
 GLN_INDEX_O=	eta.o fhash.o stopword.o
 GLN_TOKENS_O=	tokenize.o
 
-SUITES=		test_array.o test_eta.o test_table.o
+SUITES=		test_array.o test_eta.o test_set.o
 TEST_O=		${COMMON_O} ${GLN_INDEX_O} ${GLN_FILTER_O} ${GLN_O} ${SUITES}
 
 
@@ -66,11 +66,11 @@ gln_tests: tests/tests.c
 
 array.c: array.h
 db.c: db.h gln_index.h whash.h
-fhash.c: table.h fhash.h 
-gln.c:  table.h whash.h gln.h
+fhash.c: set.h fhash.h 
+gln.c:  set.h whash.h gln.h
 gln_index.c: gln_index.h
 gln_filter.c: alloc.h nextline.h array.h
-table.c: table.h
-stopword.c: stopword.h table.h whash.h gln_index.h
+set.c: set.h
+stopword.c: stopword.h set.h whash.h gln_index.h
 tokenize.c: tokenize.h whash.h
-whash.c: tokenize.h whash.h table.h
+whash.c: tokenize.h whash.h set.h

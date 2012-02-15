@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "glean.h"
-#include "table.h"
+#include "set.h"
 
 /* Externally-chaining, resizable hash table for a set of unique keys.
  * I'm not using a more general-purpose hash table because only storing
