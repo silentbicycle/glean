@@ -120,6 +120,8 @@ static int readloop(int fd, set *s, int case_sensitive,
     return 0;
 }
 
+/* Read file FN into set<word> S, then print every (word, count)
+ * pair to stdout.*/
 void tokenize_file(const char *fn, set *s, int case_sensitive) {
     int fd = open(fn, O_RDONLY, 0);
     int skipped, res;
