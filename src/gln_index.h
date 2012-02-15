@@ -17,6 +17,7 @@ typedef struct context {
     int w_ct;               /* total worker count */
     int w_avail;            /* available workers */
     int w_busy;             /* busy workers */
+    int w_offset;           /* round-robin scheduling offset */
     worker *ws;             /* workers */
     
     /* paths and files */

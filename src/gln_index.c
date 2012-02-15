@@ -101,6 +101,7 @@ static context *init_context() {
     c->f_ni = c->tick = c->tick_max = 0;
     c->fnames = v_array_new(16);
     c->w_ct = DEF_WORKER_CT;
+    c->w_offset = 0;
     return c;
 }
 

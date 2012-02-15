@@ -87,14 +87,18 @@ static int assign_file(context *c) {
     }
     if (c->verbose) printf(" -- Starting file %s (0x%0x8)\n",
         fn->name, word_hash(fn->name));
-    
-    for (i=0; i<c->w_ct; i++) {
-        w = &c->ws[i];
+
+    int w_ct = c->w_ct;
+    for (i=0; i<w_ct; i++) {
+        int w_id = (i + c->w_offset) % w_ct;
+        w = &c->ws[w_id];
         if (w->fname == NULL) {
             len2 = write(w->s, fnbuf, len + 1);
             assert(len == len2 - 1);
             w->fname = fn;
             c->f_ni++;
+            c->w_offset++;
+            if (c->w_offset >= w_ct) c->w_offset = 0;
             return 1;
         }
     }
