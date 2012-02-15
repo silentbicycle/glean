@@ -1,5 +1,5 @@
-#ifndef TABLE_H
-#define TABLE_H
+#ifndef SET_H
+#define SET_H
 
 /* Grow when any chain gets this long; the average chain
  * will be much smaller. A longer chain is slower, but will
