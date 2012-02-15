@@ -1,7 +1,7 @@
 #ifndef DB_H
 #define DB_H
 
-/* will be dynamically resized, starting value */
+/* Starting value for compression buffers (resized on demand). */
 #define DEF_BUF_SZ 128
 
 typedef struct dbdata {
@@ -18,9 +18,14 @@ typedef struct dbdata {
     ulong maxbufsz;         /* largest buffer needed for deflating */
 } dbdata;
 
+/* Init/free internal structures for zlib compression. */
 void init_zlib();
 void free_zlib();
-void init_db_files(context *c);
-int write_db(context *c);
+
+/* Initialize new database files. */
+void db_init_files(context *c);
+
+/* Write the data set. */
+int db_write(context *c);
 
 #endif

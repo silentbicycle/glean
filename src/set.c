@@ -12,11 +12,10 @@
  * I'm not using a more general-purpose hash table because only storing
  * the keys (no associated value) leads to a substantial memory savings.
  *
- * Chaining is used because once the whole data set is loaded, each
- * bucket is flattened and individually compressed. The chains are
- * allowed to grow longer than in the general case (DEF_GROW_LEN),
- * but the most recently allocated key is always moved to the front
- * of the chain.
+ * Chaining is used because the hash buckets are each packed as a group
+ * in the on-disk database. The chains are allowed to grow longer than
+ * in the general case (up to DEF_GROW_LEN), but key lookup also moves
+ * matches to the front of the chain.
  * 
  * Adding a duplicated key is an _unchecked_ error. */
 
@@ -30,20 +29,6 @@ static uint primes[] = { 3, 7, 13, 31, 61, 127, 251, 509, 1021, 2039,
                          0 };
 #define PRIME_COUNT (sizeof(primes)/sizeof(primes[0]))
 
-#ifndef ALLOC
-#define ALLOC(x) basic_alloc(x)
-#endif
-
-#ifndef FREE
-#define FREE(x) free(x)
-#endif
-
-static void *basic_alloc(size_t sz) {
-    void *p = malloc(sz);
-    if (p == NULL) err(1, "alloc fail");
-    return p;
-}
-
 /* Initialize a hash table set, expecting to store at
  * least 2^sz_factor values. Returns NULL on error. */
 set *set_new(int sz_factor, set_hash *hash, set_cmp *cmp) {
@@ -52,8 +37,8 @@ set *set_new(int sz_factor, set_hash *hash, set_cmp *cmp) {
     s_link **b;
     assert(sz_factor >= 0 && sz_factor <= (sizeof(primes) / sizeof(int)));
     sz = primes[sz_factor];
-    b = ALLOC(sz*sizeof(*b));
-    s = ALLOC(sizeof(*s));
+    b = alloc(sz*sizeof(*b), 'S');
+    s = alloc(sizeof(*s), 'S');
     assert(hash); assert(cmp);
     s->sz=sz; s->hash = hash; s->cmp = cmp; s->b = b;
     s->ms = primes[PRIME_COUNT-2];
@@ -121,7 +106,7 @@ static int set_resize(set *s, ulong sz) {
     if (DEBUG) fprintf(stderr, "\n\n-- Resizing from %lu to %lu\n\n", s->sz, sz);
     old_sz = s->sz;
     if (sz == old_sz) { return TABLE_FULL; }
-    nb = ALLOC(sz*sizeof(void *));
+    nb = alloc(sz*sizeof(void *), 'S');
     for (i=0; i<sz; i++) nb[i] = NULL;
     
     s->b = nb;
@@ -135,7 +120,7 @@ static int set_resize(set *s, ulong sz) {
             cur = next;
         }
     }
-    FREE(oldb);
+    free(oldb);
     return TABLE_RESIZED;
 }
 
@@ -156,7 +141,7 @@ int set_store(set *s, void *key) {
     assert(key); assert(s);
     h = s->hash(key);
     b = h % s->sz;
-    n = ALLOC(sizeof(s_link));
+    n = alloc(sizeof(s_link), 'S');
     n->next = NULL;
     n->key = key;
     
@@ -209,12 +194,12 @@ void set_free(set *s, set_free_cb *cb) {
         while (cur) {
             if (cb) cb(cur->key);
             n = cur->next;
-            FREE(cur);
+            free(cur);
             cur = n;
         }
     }
-    FREE(s->b);
-    FREE(s);
+    free(s->b);
+    free(s);
 }
 
 /* Print tuning statistics about the set's internals. */

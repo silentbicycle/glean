@@ -20,7 +20,7 @@
  *
  * The current method is to sort the array of words by descending
  * occurrence count, then iterate over the array and look for the point
- * at which the changes start to flatten out.
+ * at which the changes start to flatten out. (See: Zipf's law.)
  */
 
 /* Array of pointers to all words, used for calculating stop words.
@@ -37,6 +37,8 @@ static int cmp_word_ct(const void *a, const void *b) {
     return ai < bi ? 1 : ai > bi ? -1 : 0;
 }
 
+/* Step over the sorted word counts and find the index at
+ * which the frequency starts to flatten out. */
 static uint find_plateau(int flat_ct, double change_factor) {
     uint i, last, diff, lastdiff=1, flats=0, stop_at=0;
     word *w;
@@ -63,24 +65,31 @@ static uint find_plateau(int flat_ct, double change_factor) {
     return stop_at;
 }
 
-void identify_stop_words(context *c) {
+/* Attempt to identify stopwords in the set<word>.
+ * Each potential stopword has its word->stop flag set.
+ * Returns <0 on error. */
+int stopword_identify(set *word_set, ulong token_count,
+                      ulong token_occurence_count, int verbose) {
     uint i, stop_at=0;
     word *w;
     
-    if (DEBUG || 1) printf("%lu tokens, %lu occurrences\n", c->t_ct, c->t_occ_ct);
-    word_array = alloc(sizeof(word *) * c->t_ct, 'W');
+    if (DEBUG) printf("%lu tokens, %lu occurrences\n",
+        token_count, token_occurence_count);
+    word_array = alloc(sizeof(word *) * token_count, 'W');
     
     w_ct = 0;
-    set_apply(c->word_set, add_word_to_array);
-    if (w_ct == 0) return;
-    qsort(word_array, c->t_ct, sizeof(word *), cmp_word_ct);
+    set_apply(word_set, add_word_to_array);
+    if (w_ct == 0) return -1;
+    qsort(word_array, token_count, sizeof(word *), cmp_word_ct);
     
-    stop_at = find_plateau(FLAT_CT, CHANGE_FACTOR);
+    stop_at = find_plateau(STOPWORD_FLAT_CT, STOPWORD_CHANGE_FACTOR);
     if (DEBUG) fprintf(stderr, "stop_at = %d\n", stop_at);
     
     for (i=0; i<stop_at; i++) {
         w = word_array[i];
         w->stop = 1;
-        if (DEBUG) fprintf(stderr, "Setting stopword #%d: %s (%d)\n", i, w->name, w->i);
+        if (verbose) fprintf(stderr, "Setting stopword #%d: %s (%d)\n",
+            i, w->name, w->i);
     }
+    return 0;
 }

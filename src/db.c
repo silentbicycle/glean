@@ -180,8 +180,8 @@ static ulong compress_buffer(dbdata *db, int pad) {
 /* Database files */
 /******************/
 
-void init_db_files(context *c) {
-    /*printf("New db files\n");*/
+void db_init_files(context *c) {
+    /* Currently a no-op */
 }
 
 
@@ -414,7 +414,7 @@ static void write_set_data(context *c, dbdata *db, int fd, set *s,
  * Main *
  ********/
 
-int write_db(context *c) {
+int db_write(context *c) {
     dbdata *db = init_dbdata(c->fdb_fd, c->tdb_fd);
     init_zlib();
     

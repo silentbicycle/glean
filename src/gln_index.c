@@ -191,7 +191,7 @@ static void init_files(context *c) {
     
     c->fdb_fd = open_db(c->wkdir, ".gln/fname.db", c->update);
     c->tdb_fd = open_db(c->wkdir, ".gln/token.db", c->update);
-    if (fsize(c->fdb_fd) == 0) init_db_files(c);
+    if (fsize(c->fdb_fd) == 0) db_init_files(c);
     
     tstamp = open_db(c->wkdir, ".gln/timestamp", 0);
     if (close(tstamp) == -1) err(1, "Couldn't write timestamp file");
@@ -247,7 +247,7 @@ static void free_context(context *c) {
     int i;
     worker *w;
     set_free(c->word_set, free_word);
-    set_free(c->fn_set, fname_free);
+    set_free(c->fn_set, fname_free_cb);
     for (i=0; i<c->w_ct; i++) {
         w = &(c->ws[i]);
         free(w->buf);
@@ -285,10 +285,13 @@ static int finish(context *c) {
     
     if (c->use_stop_words) {
         if (c->show_progress) fprintf(stderr, "-- Analyzing stop words\n");
-        identify_stop_words(c);
+        if (stopword_identify(c->word_set, c->t_ct, c->t_occ_ct, c->verbose) < 0) {
+            fprintf(stderr, "Error while calculating stopwords\n");
+            exit(EXIT_FAILURE);
+        }
     }
     if (c->show_progress) fprintf(stderr, "-- Writing databases\n");
-    res = write_db(c);
+    res = db_write(c);
     
     if (c->verbose)
         fprintf(stderr, "%lu tokens, %u files\n", c->t_ct, c->f_ni);

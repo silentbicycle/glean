@@ -23,10 +23,12 @@ static int fname_cmp(void *a, void *b) {
     return strcmp(na, nb);
 }
 
+/* Make a new filename set. */
 set *fname_new_set(int sz_factor) {
     return set_new(sz_factor, fname_hash, fname_cmp);
 }
 
+/* Make an internal copy of filename N. */
 fname *fname_new(char *n, size_t len) {
     fname *res = alloc(sizeof(*res), 'f');
     char *name = alloc(len + 1, 'n');
@@ -35,12 +37,13 @@ fname *fname_new(char *n, size_t len) {
     return res;
 }
 
-void fname_free(void *f) {
+void fname_free_cb(void *f) {
     fname *fn = (fname *)f;
     free(fn->name);
     free(fn);
 }
 
+/* Add filename F to the set. */
 fname *fname_add(set *s, fname *f) {
     int res;
     if (DEBUG) fprintf(stderr,

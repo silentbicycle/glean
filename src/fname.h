@@ -6,9 +6,16 @@ typedef struct fname {
     char *name;
 } fname;
 
+/* Make a new filename set. */
 set *fname_new_set(int sz_factor);
+
+/* Make an internal copy of filename N. */
 fname *fname_new(char *n, size_t len);
-fname *fname_add(set *wt, fname *f);
-void fname_free(void *w);
+
+/* Add filename F to the set. */
+fname *fname_add(set *s, fname *f);
+
+/* Callback for freeing filenames in an fname* set. */
+void fname_free_cb(void *f);
 
 #endif

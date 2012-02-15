@@ -1,7 +1,7 @@
 #ifndef GLEAN_H
 #define GLEAN_H
 
-#define GLN_VERSION_STRING "000101"
+#define GLN_VERSION_STRING "000102"
 
 #ifdef NDEBUG
 #define DEBUG 0
@@ -40,9 +40,9 @@ typedef unsigned long ulong;
 #define DB_X_CT 1
 
 /* If using stop words, how many relatively-flat differences are
- * needed before stopping. TODO configure */
-#define FLAT_CT 5
-#define CHANGE_FACTOR 0.75
+ * needed before stopping. Still experimental. */
+#define STOPWORD_FLAT_CT 5
+#define STOPWORD_CHANGE_FACTOR 0.75
 
 /* If file's first read has less % printable bytes than this, skip it. */
 #define MIN_TOKEN_PRINTABLE 0.8

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 
+/* Print a hexdump of the first LEN bytes of BUF to FILE F. */
 void dumphex(FILE *f, char *buf, int len) {
     int i, j;
     char c;
