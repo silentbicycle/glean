@@ -67,13 +67,13 @@ void identify_stop_words(context *c) {
     uint i, stop_at=0;
     word *w;
     
-    if (DEBUG || 1) printf("%lu tokens, %lu occurrences\n", c->tct, c->toct);
-    word_array = alloc(sizeof(word *) * c->tct, 'W');
+    if (DEBUG || 1) printf("%lu tokens, %lu occurrences\n", c->t_ct, c->t_occ_ct);
+    word_array = alloc(sizeof(word *) * c->t_ct, 'W');
     
     w_ct = 0;
-    set_apply(c->wt, add_word_to_array);
+    set_apply(c->word_set, add_word_to_array);
     if (w_ct == 0) return;
-    qsort(word_array, c->tct, sizeof(word *), cmp_word_ct);
+    qsort(word_array, c->t_ct, sizeof(word *), cmp_word_ct);
     
     stop_at = find_plateau(FLAT_CT, CHANGE_FACTOR);
     if (DEBUG) fprintf(stderr, "stop_at = %d\n", stop_at);

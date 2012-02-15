@@ -17,6 +17,7 @@
 #include "gln_index.h"
 #include "db.h"
 #include "dumphex.h"
+#include "pack.h"
 
 /*
  * $WRKDIR/.gln/
@@ -420,13 +421,13 @@ int write_db(context *c) {
     /* write_file_header(); */
     if (DB_DEBUG) {
         fprintf(stderr, "File set:\n");
-        set_stats(c->ft, 0);
+        set_stats(c->fn_set, 0);
         fprintf(stderr, "Token set:\n");
-        set_stats(c->wt, 0);
+        set_stats(c->word_set, 0);
     }
     
-    write_set_data(c, db, db->ffd, c->ft, gln_file_header, pack_fname_bucket);
-    write_set_data(c, db, db->tfd, c->wt, gln_token_header, pack_token_bucket);
+    write_set_data(c, db, db->ffd, c->fn_set, gln_file_header, pack_fname_bucket);
+    write_set_data(c, db, db->tfd, c->word_set, gln_token_header, pack_token_bucket);
     
 #if PROFILE_COMPRESSION
     printf("Totals: IN: %lu\tOUT: %lu\t%.2f\n",

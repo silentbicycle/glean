@@ -8,7 +8,7 @@ typedef struct fname {
 
 set *fname_new_set(int sz_factor);
 fname *fname_new(char *n, size_t len);
-void fname_free(void *w);
 fname *fname_add(set *wt, fname *f);
+void fname_free(void *w);
 
 #endif

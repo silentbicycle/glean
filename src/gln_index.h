@@ -3,13 +3,15 @@
 
 #define BUF_SZ 4096
 
+/* Information specific to a tokenizer worker process. */
 typedef struct worker {
-    int s;                  /* socket */
+    int s;                  /* socket fd */
     struct fname *fname;    /* current file name, if any */
     int off;                /* read offset */
     char *buf;              /* read buffer */
 } worker;
 
+/* Overall indexing context. */
 typedef struct context {
     /* worker-related settings */
     int w_ct;               /* total worker count */
@@ -30,24 +32,24 @@ typedef struct context {
     int filter_pid;         /* pid for same */
     int max_tid;            /* max known token ID */
     int max_w_socket;       /* max worker socket file ID */
-    set *ft;              /* filename set */
-    set *wt;              /* known words set */
+    set *fn_set;            /* filename set */
+    set *word_set;          /* known words set */
     struct v_array *fnames; /* filename array */
-    uint fni;               /* current filename index */
+    uint f_ni;               /* current filename index */
     
     /* other settings */
     int verbose;            /* verbosity */
-    int use_stop_words;
-    int case_sensitive;
+    int use_stop_words;     /* attempt to detect & ignore stop words? */
+    int case_sensitive;     /* case-sensitive search? */
     int show_progress;      /* show progress? */
-    int index_dotfiles;
+    int index_dotfiles;     /* should .dotfiles be indexed? */
     int update;             /* update existing DBs? */
     int compressed;         /* compress token list file? */
     long startsec;          /* starting time */
     uint tick;              /* progress tick */
     uint tick_max;          /* this many ticks -> progress */
-    ulong tct;              /* token count */
-    ulong toct;             /* token occurrence count */
+    ulong t_ct;             /* token count */
+    ulong t_occ_ct;         /* token occurrence count */
 } context;
 
 #endif

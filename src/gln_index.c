@@ -114,15 +114,15 @@ static context *init_context() {
     c->wkdir = default_gln_dir();
     c->root = NULL;
     
-    c->wt = init_word_set(0);
-    c->ft = fname_new_set(0);
+    c->word_set = init_word_set(0);
+    c->fn_set = fname_new_set(0);
     c->verbose = c->show_progress = c->use_stop_words = 0;
     c->case_sensitive = 0;
     c->index_dotfiles = 0;
     c->update = 0;
     c->compressed = 0;
-    c->tct = c->toct = 0;
-    c->fni = c->tick = c->tick_max = 0;
+    c->t_ct = c->t_occ_ct = 0;
+    c->f_ni = c->tick = c->tick_max = 0;
     c->fnames = v_array_new(16);
     c->w_ct = DEF_WORKER_CT;
     return c;
@@ -218,7 +218,7 @@ static void init_workers(context *c) {
 
 /* Try to assign a file to an unoccupied worker, return 1 on success. */
 static int assign_file(context *c) {
-    fname *fn = (fname *)v_array_get(c->fnames, c->fni);
+    fname *fn = (fname *)v_array_get(c->fnames, c->f_ni);
     worker *w;
     uint i, len, len2;
     char fnbuf[PATH_MAX + 1]; /* for add'l \n */
@@ -235,7 +235,7 @@ static int assign_file(context *c) {
             len2 = write(w->s, fnbuf, len + 1);
             assert(len == len2 - 1);
             w->fname = fn;
-            c->fni++;
+            c->f_ni++;
             return 1;
         }
     }
@@ -246,8 +246,8 @@ static int assign_file(context *c) {
 static void free_context(context *c) {
     int i;
     worker *w;
-    set_free(c->wt, free_word);
-    set_free(c->ft, fname_free);
+    set_free(c->word_set, free_word);
+    set_free(c->fn_set, fname_free);
     for (i=0; i<c->w_ct; i++) {
         w = &(c->ws[i]);
         free(w->buf);
@@ -291,7 +291,7 @@ static int finish(context *c) {
     res = write_db(c);
     
     if (c->verbose)
-        fprintf(stderr, "%lu tokens, %u files\n", c->tct, c->fni);
+        fprintf(stderr, "%lu tokens, %u files\n", c->t_ct, c->f_ni);
     
     if (res == 0 && c->compressed) res = gzip_tokens_file(c);
     
@@ -358,7 +358,7 @@ static void enqueue_files(context *c) {
 
 static int schedule_workers(context *c) {
     int work=0;
-    uint fni = c->fni, fnlen = v_array_length(c->fnames);
+    uint fni = c->f_ni, fnlen = v_array_length(c->fnames);
     if (fni == fnlen) return 0;
     
     /* Show progress */
@@ -390,16 +390,16 @@ static void cons_word(context *c, word *w, hash_t hash) {
  * Always emit "$tokenid $fileid $data". */
 static void note_instance(context *c, worker *w, char *wbuf,
     uint data, uint len, hash_t fnhash) {
-    int known = known_word(c->wt, wbuf);
+    int known = known_word(c->word_set, wbuf);
     word *word = NULL;
     if (known) {
-        word = get_word(c->wt, wbuf);
+        word = get_word(c->word_set, wbuf);
         assert(strcmp(wbuf, word->name) == 0);
         word->i += data;
-        c->toct += data;
+        c->t_occ_ct += data;
     } else {
-        word = add_word(c->wt, wbuf, len);
-        c->tct++;
+        word = add_word(c->word_set, wbuf, len);
+        c->t_ct++;
     }        
     /* cons word */
     if (word) cons_word(c, word, fnhash);
@@ -439,7 +439,7 @@ static void process_read(context *c, worker *w, int len, int wid) {
                 return;                                
             } else if (strncmp(in + last, " DONE", 5) == 0) {
                 if (c->verbose > 1) printf(" -- Done with file %s\n", w->fname->name);
-                fname_add(c->ft, w->fname);
+                fname_add(c->fn_set, w->fname);
                 w->fname = NULL; w->off = 0;
                 c->w_busy--; c->w_avail++;
                 return;
@@ -585,7 +585,7 @@ int main(int argc, char *argv[]) {
         
         if (action) {
             action = 0;
-        } else if (c->fni == fnlen && c->w_busy == 0) {
+        } else if (c->f_ni == fnlen && c->w_busy == 0) {
             free(fdsr);
             return finish(c);
         } else {
