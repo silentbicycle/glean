@@ -32,7 +32,9 @@
  * will cause a segfault.
  *
  * When used with multiple pipelined greps, a smaller batch size means
- * more processes used, but also faster results (due to buffering).
+ * more processes used, but also presents the user with initial results
+ * more quickly (due to buffering).
+ *
  * TODO: Make this configurable.
  */
 #define BATCH_SIZE 25
