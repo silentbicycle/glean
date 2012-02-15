@@ -8,7 +8,7 @@
 #include "greatest.h"
 
 TEST h_append_and_check() {
-    h_array *a = h_array_init(1);
+    h_array *a = h_array_new(1);
 
     ASSERT_EQ(0, h_array_length(a));
 
@@ -25,7 +25,7 @@ TEST h_append_and_check() {
 }
 
 TEST h_sort() {
-    h_array *a = h_array_init(1);
+    h_array *a = h_array_new(1);
 
     for (int i=0; i<1000; i++) {
         h_array_append(a, 999 - i);
@@ -40,7 +40,7 @@ TEST h_sort() {
 }
 
 TEST h_uniq() {
-    h_array *a = h_array_init(1);
+    h_array *a = h_array_new(1);
 
     for (int i=0; i<100; i++) {
         for (int ct=0; ct<i; ct++) h_array_append(a, i);
@@ -59,8 +59,8 @@ TEST h_uniq() {
 #define EXP(ARR, I, V) ASSERT_EQ(V, h_array_get(ARR, I))
 
 TEST h_union() {
-    h_array *a = h_array_init(10);
-    h_array *b = h_array_init(10);
+    h_array *a = h_array_new(10);
+    h_array *b = h_array_new(10);
     for (int i=0; i<10; i++) {
         AP(a, i);
         AP(b, 2*i);
@@ -83,8 +83,8 @@ TEST h_union() {
 }
 
 TEST h_intersection() {
-    h_array *a = h_array_init(10);
-    h_array *b = h_array_init(10);
+    h_array *a = h_array_new(10);
+    h_array *b = h_array_new(10);
     for (int i=0; i<10; i++) {
         AP(a, i);
         AP(b, i + 5);
@@ -104,8 +104,8 @@ TEST h_intersection() {
 }
 
 TEST h_complement() {
-    h_array *a = h_array_init(10);
-    h_array *b = h_array_init(10);
+    h_array *a = h_array_new(10);
+    h_array *b = h_array_new(10);
     for (int i=0; i<10; i++) {
         AP(a, i);
         AP(b, i + 5);
@@ -124,7 +124,7 @@ TEST h_complement() {
 }
 
 TEST v_append_and_check() {
-    v_array *a = v_array_init(1);
+    v_array *a = v_array_new(1);
 
     ASSERT_EQ(0, v_array_length(a));
 
@@ -154,7 +154,7 @@ static int cmp_cb(const void *a, const void *b) {
 }
 
 TEST v_sort() {
-    v_array *a = v_array_init(1);
+    v_array *a = v_array_new(1);
     for (uintptr_t i=0; i<100; i++) {
         v_array_append(a, (void *) (99 - i));
     }
@@ -170,7 +170,7 @@ TEST v_sort() {
 }
 
 TEST v_free_cb_test() {
-    v_array *a = v_array_init(1);
+    v_array *a = v_array_new(1);
 
     for (uintptr_t i=0; i<1000; i++) {
         v_array_append(a, (void *) i);

@@ -46,7 +46,7 @@ static void *basic_alloc(size_t sz) {
 
 /* Initialize a hash table set, expecting to store at
  * least 2^sz_factor values. Returns NULL on error. */
-set *set_init(int sz_factor, set_hash *hash, set_cmp *cmp) {
+set *set_new(int sz_factor, set_hash *hash, set_cmp *cmp) {
     int i, sz;
     set *s = NULL;
     s_link **b;

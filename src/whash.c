@@ -34,7 +34,7 @@ static int word_cmp(void *a, void *b) {
 }
 
 set *init_word_set(int sz_factor) {
-    return set_init(sz_factor, word_hash, word_cmp);
+    return set_new(sz_factor, word_hash, word_cmp);
 }
 
 word *new_word(char *w, size_t len, uint data) {
@@ -45,7 +45,7 @@ word *new_word(char *w, size_t len, uint data) {
     nbuf[len] = '\0';
     ws->name = nbuf;
     ws->stop = 0;
-    ws->a = h_array_init(2);
+    ws->a = h_array_new(2);
     assert(ws->a);
     ws->i = data;
     if (DEBUG) fprintf(stderr, "Created word %p %s %d\n",

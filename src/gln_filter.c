@@ -40,8 +40,8 @@ static char *default_ignore_REs[] = {
 
 static re_group *init_re_group() {
     re_group *g = alloc(sizeof(re_group), 'r');
-    g->res = v_array_init(4);
-    g->ans = v_array_init(4);
+    g->res = v_array_new(4);
+    g->ans = v_array_new(4);
     g->debug = 0;
     return g;
 }

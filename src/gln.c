@@ -16,7 +16,7 @@
 
 #include "glean.h"
 #include "set.h"
-#include "fhash.h"
+#include "fname.h"
 #include "whash.h"
 #include "gln_index.h"
 #include "db.h"
@@ -387,9 +387,9 @@ static grep *init_grep(char *pattern, enum grep_op op, grep *parent) {
     grep *g = alloc(sizeof(grep), 'g');
     g->op = op;
     g->pattern = pattern;
-    g->tokens = v_array_init(4);
-    g->thashes = h_array_init(4);
-    g->results = h_array_init(4);
+    g->tokens = v_array_new(4);
+    g->thashes = h_array_new(4);
+    g->results = h_array_new(4);
     if (parent) parent->g = g;
     g->g = NULL;
     return g;
@@ -558,7 +558,7 @@ static char *get_timestamp_fname(dbinfo *db) {
 
 static void get_matching_filenames(dbinfo *db) {
     uint i;
-    db->fnames = v_array_init(2);
+    db->fnames = v_array_new(2);
     for (i=0; i<h_array_length(db->results); i++)
         append_hash_files(db, h_array_get(db->results, i));
 }

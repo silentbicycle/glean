@@ -13,7 +13,7 @@
  * Hash array *
  **************/
 
-h_array *h_array_init(uint sz) {
+h_array *h_array_new(uint sz) {
     h_array *a = alloc(sizeof(h_array), 'H');
     hash_t *hs = alloc(sz * sizeof(hash_t), 'h');
     assert(sz > 0);
@@ -84,7 +84,7 @@ h_array *h_array_union(h_array *a, h_array *b) {
     } else if (lenb == 0) {
         z = a;
     } else {                
-        z = h_array_init(2);
+        z = h_array_new(2);
         while (1) {
             ha = h_array_get(a, ia);
             hb = h_array_get(b, ib);
@@ -119,7 +119,7 @@ h_array *h_array_intersection(h_array *a, h_array *b) {
     uint ia = 0, ib = 0;
     uint lena = h_array_length(a), lenb = h_array_length(b);
     hash_t ha, hb;
-    z = h_array_init(2);
+    z = h_array_new(2);
     if (lena > 0 && lenb > 0) {
         while (1) {
             ha = h_array_get(a, ia);
@@ -148,9 +148,9 @@ h_array *h_array_complement(h_array *a, h_array *b) {
     if (lenb == 0) {
         z = a;
     } else if (lena == 0) {
-        z = h_array_init(2);
+        z = h_array_new(2);
     } else {
-        z = h_array_init(2);
+        z = h_array_new(2);
         while (1) {
             ha = h_array_get(a, ia);
             hb = h_array_get(b, ib);
@@ -186,7 +186,7 @@ void h_array_free(h_array *a) {
  * Void * array *
  ****************/
 
-v_array *v_array_init(uint sz) {
+v_array *v_array_new(uint sz) {
     v_array *a = alloc(sizeof(v_array), 'v');
     void **vs = alloc(sz * sizeof(void *), 'v');
     assert(sz > 0);

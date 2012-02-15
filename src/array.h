@@ -11,7 +11,7 @@ typedef struct h_array {
     hash_t *hs;             /* file hashes */
 } h_array;
 
-h_array *h_array_init(uint sz);
+h_array *h_array_new(uint sz);
 void h_array_append(h_array *a, hash_t v);
 hash_t h_array_get(h_array *a, uint i);
 uint h_array_length(h_array *a);
@@ -40,7 +40,7 @@ typedef int (v_array_cmp)(const void *a, const void *b);
 /* Array value free callback: free the value v. */
 typedef void (v_array_free_cb)(void *v);
 
-v_array *v_array_init(uint sz);
+v_array *v_array_new(uint sz);
 void v_array_append(v_array *a, void *v);
 void *v_array_get(v_array *a, uint i);
 uint v_array_length(v_array *v);

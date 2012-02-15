@@ -8,7 +8,7 @@ PROGS= 		gln gln_filter gln_index gln_tokens test_gln
 COMMON_O=	alloc.o array.o db.o dumphex.o nextline.o set.o whash.o
 GLN_O=		
 GLN_FILTER_O=	
-GLN_INDEX_O=	eta.o fhash.o stopword.o
+GLN_INDEX_O=	eta.o fname.o stopword.o
 GLN_TOKENS_O=	tokenize.o
 
 SUITES=		test_array.o test_eta.o test_set.o
@@ -66,7 +66,7 @@ gln_tests: tests/tests.c
 
 array.c: array.h
 db.c: db.h gln_index.h whash.h
-fhash.c: set.h fhash.h 
+fname.c: set.h fname.h 
 gln.c:  set.h whash.h gln.h
 gln_index.c: gln_index.h
 gln_filter.c: alloc.h nextline.h array.h

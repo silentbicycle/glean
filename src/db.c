@@ -12,7 +12,7 @@
 #include "glean.h"
 #include "set.h"
 #include "whash.h"
-#include "fhash.h"
+#include "fname.h"
 #include "array.h"
 #include "gln_index.h"
 #include "db.h"

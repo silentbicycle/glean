@@ -18,7 +18,7 @@
 #include "glean.h"
 #include "set.h"
 #include "whash.h"
-#include "fhash.h"
+#include "fname.h"
 #include "tokenize.h"
 #include "array.h"
 #include "gln_index.h"
@@ -115,7 +115,7 @@ static context *init_context() {
     c->root = NULL;
     
     c->wt = init_word_set(0);
-    c->ft = init_fname_set(0);
+    c->ft = fname_new_set(0);
     c->verbose = c->show_progress = c->use_stop_words = 0;
     c->case_sensitive = 0;
     c->index_dotfiles = 0;
@@ -123,7 +123,7 @@ static context *init_context() {
     c->compressed = 0;
     c->tct = c->toct = 0;
     c->fni = c->tick = c->tick_max = 0;
-    c->fnames = v_array_init(16);
+    c->fnames = v_array_new(16);
     c->w_ct = DEF_WORKER_CT;
     return c;
 }
@@ -247,7 +247,7 @@ static void free_context(context *c) {
     int i;
     worker *w;
     set_free(c->wt, free_word);
-    set_free(c->ft, free_fname);
+    set_free(c->ft, fname_free);
     for (i=0; i<c->w_ct; i++) {
         w = &(c->ws[i]);
         free(w->buf);
@@ -335,7 +335,7 @@ static void enqueue_files(context *c) {
             if (c->verbose || DEBUG)
                 fprintf(stderr, "Ignoring: %s\n", buf);
         } else {
-            fn = new_fname(buf, len);
+            fn = fname_new(buf, len);
             v_array_append(c->fnames, fn);
             if (c->verbose > 1) fprintf(stderr, "Appended: %d %s\n",
                 v_array_length(c->fnames), fn->name);
@@ -439,7 +439,7 @@ static void process_read(context *c, worker *w, int len, int wid) {
                 return;                                
             } else if (strncmp(in + last, " DONE", 5) == 0) {
                 if (c->verbose > 1) printf(" -- Done with file %s\n", w->fname->name);
-                add_fname(c->ft, w->fname);
+                fname_add(c->ft, w->fname);
                 w->fname = NULL; w->off = 0;
                 c->w_busy--; c->w_avail++;
                 return;

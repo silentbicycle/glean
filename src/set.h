@@ -47,7 +47,7 @@ typedef struct set {
 
 /* Initialize a hash table set, expecting to store at
  * least 2^sz_factor values. Returns NULL on error. */
-set *set_init(int sz_factor, set_hash *hash, set_cmp *cmp);
+set *set_new(int sz_factor, set_hash *hash, set_cmp *cmp);
 
 /* Get the canonical version of the key, or NULL if unknown. */
 void *set_get(set *t, void *key);
