@@ -819,7 +819,7 @@ int main(int argc, char *argv[]) {
     db = init_dbinfo();
     mode = handle_args(db, &argc, &argv);
     
-    if (argc < 1) usage();
+    if (argc < 1 && mode == MODE_GLEAN) usage();
 
     if (mode == MODE_HASH) {
         free_dbinfo(db);
