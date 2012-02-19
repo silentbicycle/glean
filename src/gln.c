@@ -321,7 +321,7 @@ static void dump_db(dbinfo *dbi, char *db, ll_offset *db_head,
         o = cur->o;
         head = o + 4;
         buckets = rd_int32(db, head)/4;
-        printf("Bucket count: %lu\n", buckets);
+        printf("Bucket count: %lu\n", buckets + 1);
         
         for (i=0; i<buckets; i++) {
             o = rd_int32(db, head + 4 + (i*4));
